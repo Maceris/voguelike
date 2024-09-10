@@ -1,8 +1,17 @@
+use std::time::{Duration, SystemTime};
+
+use crossterm::execute;
+use entity::Player;
+use map::Map;
+
+mod entity;
+mod item;
+mod map;
 mod terminal_util;
 
 fn main() {
-    
-    terminal_util::clear_screen();
+
+    terminal_util::enter_alternate_screen();
 
     let size = match crossterm::terminal::size() {
         Ok(value) => value,
@@ -19,5 +28,19 @@ fn main() {
         Err(e) => panic!("{}", e)
     };
 
-    terminal_util::print_screen(screen);
+    let map = Map {
+        player: Player{
+            pos_x: 5,
+            pos_y: 5
+        }
+    };
+
+    let start = SystemTime::now();
+
+    while start.elapsed().unwrap().as_secs() < 5 {
+        terminal_util::print_screen(&screen, &map);
+    }
+    
+    terminal_util::exit_alternate_screen();
+
 }

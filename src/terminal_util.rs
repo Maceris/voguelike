@@ -1,12 +1,25 @@
-use std::{error::Error, fmt, io};
+use std::{error::Error, fmt, io::{self, Write}};
 
-use crossterm::{
-    ExecutableCommand,
-    terminal, cursor, style::{self, Stylize}
-};
+use crossterm::{ cursor, execute, style, terminal, ExecutableCommand, QueueableCommand };
+
+use crate::map::{Location, Map};
 
 pub const MIN_WIDTH: u16 = 77;
 pub const MIN_HEIGHT: u16 = 25;
+
+macro_rules! panic_on_error {
+    ($expression:expr) => {
+        if $expression.is_err() {
+            panic!("Terminal error")
+        }
+    };
+}
+
+macro_rules! run_commands {
+    ($first_command:expr $(, $command:expr)* $(,)?) => {
+        panic_on_error!(execute!(io::stdout(), $first_command $(, $command)*));
+    };
+}
 
 #[derive(Debug, Clone)]
 pub struct TerminalError {
@@ -33,14 +46,30 @@ pub struct Screen {
     pub height: u16
 }
 
+pub trait Drawable {
+    fn get_color(&self) -> style::Color;
+    fn get_icon(&self) -> char;
+}
+
+#[macro_export]
+macro_rules! create_drawable {
+    ($class:ty, $color:expr, $icon:expr) => {
+        impl Drawable for $class {
+            fn get_color(&self) -> Color {
+                return $color;
+            }
+            fn get_icon(&self) -> char {
+                return $icon;
+            }
+        }
+    };
+}
+
 pub fn clear_screen() {
-    let mut stdout = io::stdout();
-    
-    let result = stdout.execute(terminal::Clear(terminal::ClearType::All));
-    
-    if result.is_err() {
-        panic!("Unable to clear terminal")
-    }
+    run_commands!(
+        terminal::Clear(terminal::ClearType::Purge),
+        cursor::MoveTo(0, 0)
+    );
 }
 
 pub fn create_screen(terminal: Terminal) -> Result<Screen, TerminalError> {
@@ -59,7 +88,17 @@ pub fn create_screen(terminal: Terminal) -> Result<Screen, TerminalError> {
     Ok(result)
 }
 
-pub fn print_screen(screen: Screen) {
+pub fn enter_alternate_screen() {
+    run_commands!(terminal::EnterAlternateScreen);
+}
+
+pub fn exit_alternate_screen() {
+    run_commands!(terminal::LeaveAlternateScreen);
+}
+
+pub fn print_screen(screen: &Screen, map: &Map) {
+    clear_screen();
+
     let y_max: u16 = screen.height - 1;
     let x_max: u16 = screen.width - 1;
 
@@ -74,4 +113,12 @@ pub fn print_screen(screen: Screen) {
         }
         println!();
     }
+
+    run_commands!(
+        cursor::MoveTo(map.player.pos_x, map.player.pos_y),
+        style::SetForegroundColor(map.player.get_color()),
+        style::Print(map.player.get_icon())
+    );
+
 }
+
