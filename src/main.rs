@@ -5,6 +5,7 @@ use map::{Location, Map};
 
 mod entity;
 mod item;
+mod game;
 mod map;
 mod terminal_util;
 

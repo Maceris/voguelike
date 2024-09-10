@@ -1,4 +1,4 @@
-use crossterm::{cursor, execute, terminal};
+use crossterm::{cursor, execute, queue, terminal};
 use std::{error::Error, io, fmt};
 
 use crossterm::style;
@@ -103,29 +103,32 @@ pub fn game_drawing_end() {
     );
 }
 
-pub fn print_screen(screen: &Screen, map: &Map) {
-    clear_screen();
+fn _print_screen(screen: &Screen, map: &Map) -> Result<(), std::io::Error> {
 
     let y_max: u16 = screen.height - 1;
     let x_max: u16 = screen.width - 1;
 
+    queue!(io::stdout(), cursor::MoveTo(0, 0))?;
     for y in 0..screen.height {
+        queue!(io::stdout(), cursor::MoveTo(0, y))?;
         for x in 0..screen.width {
             if y == 0 || y == y_max || x == 0 || x == x_max {
-                print!("*");
+                queue!(io::stdout(), style::Print('*'))?;
             }
             else {
-                print!(" ");
+                queue!(io::stdout(), style::Print(' '))?;
             }
         }
-        println!();
     }
 
-    run_commands!(
+    execute!(io::stdout(),
         cursor::MoveTo(map.player.pos_x, map.player.pos_y),
         style::SetForegroundColor(map.player.get_color()),
         style::Print(map.player.get_icon())
-    );
+    )
+}
 
+pub fn print_screen(screen: &Screen, map: &Map) {
+    panic_on_error!(_print_screen(screen, map));
 }
 
