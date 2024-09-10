@@ -1,8 +1,9 @@
-use std::{error::Error, fmt, io::{self, Write}};
+use crossterm::{cursor, execute, terminal};
+use std::{error::Error, io, fmt};
 
-use crossterm::{ cursor, execute, style, terminal, ExecutableCommand, QueueableCommand };
+use crossterm::style;
 
-use crate::map::{Location, Map};
+use crate::map::Map;
 
 pub const MIN_WIDTH: u16 = 77;
 pub const MIN_HEIGHT: u16 = 25;
@@ -88,12 +89,18 @@ pub fn create_screen(terminal: Terminal) -> Result<Screen, TerminalError> {
     Ok(result)
 }
 
-pub fn enter_alternate_screen() {
-    run_commands!(terminal::EnterAlternateScreen);
+pub fn game_drawing_begin() {
+    run_commands!(
+        terminal::EnterAlternateScreen,
+        cursor::Hide
+    );
 }
 
-pub fn exit_alternate_screen() {
-    run_commands!(terminal::LeaveAlternateScreen);
+pub fn game_drawing_end() {
+    run_commands!(
+        terminal::LeaveAlternateScreen,
+        cursor::Show
+    );
 }
 
 pub fn print_screen(screen: &Screen, map: &Map) {
