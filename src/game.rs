@@ -1,3 +1,5 @@
+use crate::{entity::Player, map::TileMap};
+
 pub enum GameState {
     Menu,
     Paused,
@@ -5,5 +7,7 @@ pub enum GameState {
 }
 
 pub struct Game {
-    pub state: GameState
+    pub state: GameState,
+    pub player: Player,
+    pub tile_map: TileMap,
 }

@@ -1,8 +1,10 @@
 use std::{thread, time::{Duration, SystemTime}};
 
 use entity::Player;
+use game::{Game, GameState};
 use map::{Location, Map};
 
+mod action;
 mod entity;
 mod item;
 mod game;
@@ -31,14 +33,29 @@ fn main() {
         Err(e) => panic!("{}", e)
     };
 
-    let mut map = Map {
+    let mut game = Game {
+        state: GameState::Menu,
         player: Player{
             pos_x: 5,
             pos_y: 5
         },
-        width: screen.width,
-        height: screen.height
+        tile_map: map::generate_tile_map()
     };
+
+    let mut map = Map::new(screen.width, screen.height);
+
+    let y_max: u16 = screen.height - 1;
+    let x_max: u16 = screen.width - 1;
+    for y in 0..screen.height {
+        for x in 0..screen.width {
+            if y == 0 || y == y_max || x == 0 || x == x_max {
+                map.set(x, y, map::Tile::Wall);
+            }
+            else {
+                map.set(x, y, map::Tile::Floor);
+            }
+        }
+    }
 
     const FRAME_DURATION: Duration = Duration::from_nanos(NANOS_PER_FRAME as u64);
 
@@ -49,9 +66,9 @@ fn main() {
     while start.elapsed().unwrap().as_secs() < 10 {
         let frame_start = SystemTime::now();
         
-        terminal_util::print_screen(&screen, &map);
+        terminal_util::print_screen(&game, &screen, &map);
 
-        let player: &mut Player = &mut map.player;
+        let player: &mut Player = &mut game.player;
 
         if dx > 0 && player.get_x() as i16 + dx >= (map.width - 1) as i16 {
             dx = -dx;

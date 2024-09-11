@@ -3,7 +3,7 @@ use std::{error::Error, io, fmt};
 
 use crossterm::style;
 
-use crate::map::Map;
+use crate::{game::Game, map::{Location, Map, Tile, TileInfo}};
 
 pub const MIN_WIDTH: u16 = 77;
 pub const MIN_HEIGHT: u16 = 25;
@@ -45,6 +45,11 @@ pub struct Terminal {
 pub struct Screen {
     pub width: u16,
     pub height: u16
+}
+
+pub struct DrawInfo {
+    pub color: style::Color,
+    pub icon: char
 }
 
 pub trait Drawable {
@@ -103,32 +108,25 @@ pub fn game_drawing_end() {
     );
 }
 
-fn _print_screen(screen: &Screen, map: &Map) -> Result<(), std::io::Error> {
-
-    let y_max: u16 = screen.height - 1;
-    let x_max: u16 = screen.width - 1;
-
+fn _print_screen(game: &Game, screen: &Screen, map: &Map) -> Result<(), std::io::Error> {
     queue!(io::stdout(), cursor::MoveTo(0, 0))?;
     for y in 0..screen.height {
         queue!(io::stdout(), cursor::MoveTo(0, y))?;
         for x in 0..screen.width {
-            if y == 0 || y == y_max || x == 0 || x == x_max {
-                queue!(io::stdout(), style::Print('*'))?;
-            }
-            else {
-                queue!(io::stdout(), style::Print(' '))?;
-            }
+            let tile: Tile = map.get(x, y);
+            let draw_info: &DrawInfo = &game.tile_map[tile].draw_info;
+            queue!(io::stdout(), style::SetForegroundColor(draw_info.color), style::Print(draw_info.icon))?;
         }
     }
 
     execute!(io::stdout(),
-        cursor::MoveTo(map.player.pos_x, map.player.pos_y),
-        style::SetForegroundColor(map.player.get_color()),
-        style::Print(map.player.get_icon())
+        cursor::MoveTo(game.player.get_x(), game.player.get_y()),
+        style::SetForegroundColor(game.player.get_color()),
+        style::Print(game.player.get_icon())
     )
 }
 
-pub fn print_screen(screen: &Screen, map: &Map) {
-    panic_on_error!(_print_screen(screen, map));
+pub fn print_screen(game: &Game, screen: &Screen, map: &Map) {
+    panic_on_error!(_print_screen(game, screen, map));
 }
 
