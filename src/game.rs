@@ -1,4 +1,4 @@
-use crate::{entity::Player, map::TileMap};
+use crate::{entity::Player, map::{GameMap, TileMap}};
 
 pub enum GameState {
     Menu,
@@ -9,5 +9,6 @@ pub enum GameState {
 pub struct Game {
     pub state: GameState,
     pub player: Player,
+    pub current_map: Option<Box<GameMap>>,
     pub tile_map: TileMap,
 }
