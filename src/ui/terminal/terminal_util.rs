@@ -74,7 +74,6 @@ macro_rules! create_drawable {
 
 struct ScreenBuffer {
     width: u16,
-    height: u16,
     tiles: Vec<DrawInfo>
 }
 
@@ -82,7 +81,6 @@ impl ScreenBuffer {
     pub fn new(width: u16, height: u16) -> Self {
         let mut result = Self {
             width,
-            height,
             tiles: Vec::with_capacity((width * height).into())
         };
 

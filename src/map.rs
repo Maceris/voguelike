@@ -1,7 +1,7 @@
 use crossterm::style::Color;
 use enum_map::{enum_map, Enum, EnumMap};
 
-use crate::{terminal_util::DrawInfo};
+use crate::ui::terminal::terminal_util::DrawInfo;
 
 #[derive(Clone, Copy, Debug, Enum)]
 pub enum Tile {

@@ -3,13 +3,14 @@ use std::{thread, time::{Duration, SystemTime}};
 use entity::Player;
 use game::{Game, GameState};
 use map::{Location, GameMap};
+use ui::terminal::terminal_util;
 
 mod action;
 mod entity;
 mod item;
 mod game;
 mod map;
-mod terminal_util;
+mod ui;
 
 const FRAMES_PER_SECOND: u8 = 30;
 const NANOS_PER_FRAME: u32 = 1_000_000_000 / (FRAMES_PER_SECOND as u32);
