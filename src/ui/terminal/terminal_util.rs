@@ -1,12 +1,13 @@
 use crossterm::{cursor, execute, queue, style::Color, terminal};
-use std::{error::Error, fmt, io::{self, Write}};
+use ringbuffer::RingBuffer;
+use std::{char::from_digit, error::Error, fmt, io::{self, Write}};
 
 use crossterm::style;
 
-use crate::{entity::Player, game::Game, map::{Location, Tile}};
+use crate::{entity::Player, game::{DebugInfo, Game}, map::{Location, Tile}, FRAMES_PER_SECOND};
 
-pub const MIN_WIDTH: u16 = 77;
-pub const MIN_HEIGHT: u16 = 25;
+pub const MIN_WIDTH: u16 = 80;
+pub const MIN_HEIGHT: u16 = 24;
 
 macro_rules! panic_on_error {
     ($expression:expr) => {
@@ -140,6 +141,18 @@ fn diff(old: &ScreenBuffer, new: &ScreenBuffer, diff: &mut Vec<bool>) {
     }
 }
 
+fn get_average_fps(debug_info: &DebugInfo) -> u32 {
+    let mut sum: u128 = 0;
+    let mut count: u128 = 0;
+
+    for i in 0..debug_info.fps_history.len() {
+        sum += *debug_info.fps_history.get(i).unwrap() as u128;
+        count += 1;
+    }
+
+    return (sum / u128::max(1, count)) as u32;
+}
+
 fn generate_frame(render_state: &mut RenderState, game: &Game) {
     if game.current_map.is_some() {
         for y in 0..render_state.screen.height {
@@ -155,6 +168,27 @@ fn generate_frame(render_state: &mut RenderState, game: &Game) {
 
         render_state.current_frame.set_color(player.get_x(), player.get_y(), player.get_color());
         render_state.current_frame.set_icon(player.get_x(), player.get_y(), player.get_icon());
+    }
+
+    let fps: u32 = u32::max(1, get_average_fps(&game.debug_info));
+    let fps_digits: u32 = fps.ilog10() + 1;
+    
+    let color: Color = if fps < FRAMES_PER_SECOND as u32 {
+        Color::Red
+    } else {
+        Color::Green
+    };
+
+    for i in 0..fps_digits {
+        let digit = if i < fps_digits - 1 {
+            const BASE: u32 = 10;
+            (fps / (BASE.pow(fps_digits - (i + 1)))) % 10
+        } else {
+            fps % 10
+        };
+        
+        render_state.current_frame.set_color(i as u16, 0, color);
+        render_state.current_frame.set_icon(i as u16, 0, from_digit(digit, 10).unwrap());
     }
     //TODO(ches) headers, footers, menus, etc
 }
@@ -177,9 +211,11 @@ pub fn game_drawing_begin() {
         terminal::EnterAlternateScreen,
         cursor::Hide
     );
+    panic_on_error!(terminal::enable_raw_mode());
 }
 
 pub fn game_drawing_end() {
+    panic_on_error!(terminal::disable_raw_mode());
     run_commands!(
         terminal::LeaveAlternateScreen,
         cursor::Show

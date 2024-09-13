@@ -1,8 +1,9 @@
 use std::{thread, time::{Duration, SystemTime}};
 
 use entity::Player;
-use game::{Game, GameState};
+use game::{DebugInfo, Game, GameState};
 use map::{Location, GameMap};
+use ringbuffer::{AllocRingBuffer, RingBuffer};
 use ui::terminal::terminal_util;
 
 mod action;
@@ -41,7 +42,8 @@ fn main() {
             pos_y: 5
         },
         current_map: None,
-        tile_map: map::generate_tile_map()
+        tile_map: map::generate_tile_map(),
+        debug_info: DebugInfo{fps_history: AllocRingBuffer::new(100)}
     };
 
     game.current_map = Some(Box::new(GameMap::new(render_state.screen.width, render_state.screen.height)));
@@ -93,12 +95,12 @@ fn main() {
 
         let elapsed_time = frame_start.elapsed().unwrap();
 
+        let fps: u128 = 1_000_000_000 / u128::max(1, elapsed_time.as_nanos());
+        game.debug_info.fps_history.push(fps as u32);
+
         if elapsed_time < FRAME_DURATION {
             let time_to_sleep = FRAME_DURATION - elapsed_time;
             thread::sleep(time_to_sleep);
-        }
-        else {
-            panic!("Frame took too long! {}ms", (elapsed_time - FRAME_DURATION).as_millis());
         }
         
     }
