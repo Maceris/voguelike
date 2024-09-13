@@ -158,7 +158,7 @@ fn generate_frame(render_state: &mut RenderState, game: &Game) {
         for y in 0..render_state.screen.height {
             for x in 0..render_state.screen.width {
                 let tile: Tile = game.current_map.as_ref().unwrap().get(x, y);
-                let draw_info: &DrawInfo = &game.tile_map[tile].draw_info;
+                let draw_info: &DrawInfo = &game.data_tables.tile_map[tile].draw_info;
                 render_state.current_frame.set_color(x, y, draw_info.color);
                 render_state.current_frame.set_icon(x, y, draw_info.icon);
             }

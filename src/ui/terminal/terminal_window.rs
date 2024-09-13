@@ -34,3 +34,12 @@ pub struct Dialog<'a> {
     pub title: &'a str,
     pub contents: Vec<Text<'a>>
 }
+
+struct Column <'a> {
+    pub title: &'a str,
+    pub width: u16
+}
+
+pub struct Table<'a> {
+    pub columns: Vec<Column<'a>>
+}

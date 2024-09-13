@@ -1,9 +1,11 @@
 use std::{thread, time::{Duration, SystemTime}};
 
 use entity::Player;
-use game::{DebugInfo, Game, GameState};
+use game::{DataTables, DebugInfo, Game, GameState};
 use map::{Location, GameMap};
+use material::generate_material_map;
 use ringbuffer::{AllocRingBuffer, RingBuffer};
+use tag::generate_tag_map;
 use ui::terminal::terminal_util;
 
 mod action;
@@ -11,6 +13,8 @@ mod entity;
 mod item;
 mod game;
 mod map;
+mod material;
+mod tag;
 mod ui;
 
 const FRAMES_PER_SECOND: u8 = 30;
@@ -42,7 +46,11 @@ fn main() {
             pos_y: 5
         },
         current_map: None,
-        tile_map: map::generate_tile_map(),
+        data_tables: DataTables {
+            tile_map: map::generate_tile_map(),
+            tag_map: tag::generate_tag_map(),
+            material_map: material::generate_material_map(),
+        },
         debug_info: DebugInfo{fps_history: AllocRingBuffer::new(100)}
     };
 
