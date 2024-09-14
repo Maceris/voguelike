@@ -3,9 +3,7 @@ use std::{thread, time::{Duration, SystemTime}};
 use entity::Player;
 use game::{DataTables, DebugInfo, Game, GameState};
 use map::{Location, GameMap};
-use material::generate_material_map;
 use ringbuffer::{AllocRingBuffer, RingBuffer};
-use tag::generate_tag_map;
 use ui::terminal::terminal_util;
 
 mod action;

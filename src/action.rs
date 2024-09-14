@@ -2,8 +2,6 @@ use traits::create_action;
 
 use crate::entity::Entity;
 
-pub trait Action {}
-
 create_action!(Quit);
 create_action!(Restart);
 create_action!(Restore);
@@ -79,6 +77,82 @@ create_action!(Wave);
 create_action!(WaveHands);
 create_action!(Wear);
 
+pub enum Action {
+    Quit(Quit),
+    Restart(Restart),
+    Restore(Restore),
+    Save(Save),
+    Answer(Answer),
+    Ask(Ask),
+    AskFor(AskFor),
+    Attack(Attack),
+    Blow(Blow),
+    Burn(Burn),
+    Buy(Buy),
+    Clean(Clean),
+    Climb(Climb),
+    Close(Close),
+    Consult(Consult),
+    Crush(Crush),
+    Cut(Cut),
+    Dig(Dig),
+    Disrobe(Disrobe),
+    Drink(Drink),
+    Drop(Drop),
+    Eat(Eat),
+    Empty(Empty),
+    Enter(Enter),
+    Examine(Examine),
+    Exit(Exit),
+    Fill(Fill),
+    GetOff(GetOff),
+    Give(Give),
+    Go(Go),
+    Insert(Insert),
+    Inventory(Inventory),
+    Jump(Jump),
+    JumpOver(JumpOver),
+    Kiss(Kiss),
+    Listen(Listen),
+    Lock(Lock),
+    Look(Look),
+    LookUnder(LookUnder),
+    Open(Open),
+    Order(Order),
+    Pray(Pray),
+    Pull(Pull),
+    Push(Push),
+    PushDir(PushDir),
+    PutOn(PutOn),
+    Remove(Remove),
+    Search(Search),
+    Set(Set),
+    SetTo(SetTo),
+    Show(Show),
+    Sing(Sing),
+    Sleep(Sleep),
+    Smell(Smell),
+    Swim(Swim),
+    Swing(Swing),
+    SwitchOff(SwitchOff),
+    SwitchOn(SwitchOn),
+    Take(Take),
+    Taste(Taste),
+    Tell(Tell),
+    Think(Think),
+    ThrowAt(ThrowAt),
+    Tie(Tie),
+    Touch(Touch),
+    Turn(Turn),
+    Unlock(Unlock),
+    Wait(Wait),
+    Wake(Wake),
+    WakeOther(WakeOther),
+    Wave(Wave),
+    WaveHands(WaveHands),
+    Wear(Wear),
+}
+
 pub trait Actionable {
     fn before() -> bool;
     fn during(argument: ActionArgument) -> bool;
@@ -93,6 +167,14 @@ macro_rules! stub_before {
     };
 }
 
+macro_rules! stub_during {
+    () => {
+        fn during(argument: ActionArgument) -> bool {
+            return true;
+        }
+    };
+}
+
 macro_rules! stub_after {
     () => {
         fn after() -> bool {
@@ -101,29 +183,50 @@ macro_rules! stub_after {
     };
 }
 
-enum ActionArgument {
+pub enum ActionArgument {
     Zero,
     One(Entity),
-    Two(Entity, Entity),
-    Count(u8)
+    Two(Entity, Entity)
 }
 
-enum ActionType {
-    Meta,
-    Gameplay
+pub struct ActionInfo {
+    is_meta: bool,
+    expected_argument: ActionArgument
+}
+
+pub trait Actor {
+    fn before(action: Action) -> bool;
+    fn after(action: Action) -> bool;
+    fn react_before(action: Action) -> bool;
+    fn react_after(action: Action) -> bool;
+}
+
+fn execute_action(action: Action, argument: ActionArgument) {
+    let first_argument: Option<Entity> = match argument {
+        ActionArgument::Zero => None,
+        ActionArgument::One(target) => Some(target),
+        ActionArgument::Two(target, _) => Some(target),
+    };
+    //TODO(ches) skip before and after stages for meta actions
+    
+    //TODO(ches) react_before of things in vicinity
+    //TODO(ches) react_before of room
+    //TODO(ches) first object before, if at least one object
+    
+    //TODO(ches) action during
+
+    //TODO(ches) react_after of things in vicinity
+    //TODO(ches) react_after of room
 }
 
 impl Actionable for Examine {
     stub_before!();
     fn during(argument: ActionArgument) -> bool {
-
         let target: Entity = match argument {
             ActionArgument::Zero => return false,
             ActionArgument::One(target) => target,
             ActionArgument::Two(_, _) => return false,
-            ActionArgument::Count(_) => return false
         };
-        
 
         return true;
     }

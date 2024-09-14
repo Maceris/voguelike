@@ -1,15 +1,10 @@
 use crossterm::style::Color;
 
-use crate::{create_drawable, map::Location, terminal_util::Drawable};
+use crate::{action::{Action, Actor, Examine}, create_drawable, map::Location, terminal_util::Drawable};
 
 pub struct Species;
 
 pub struct Entity;
-
-pub trait Actor {
-    fn before() -> bool;
-    fn react() -> bool;
-}
 
 pub struct Player {
     pub pos_x: u16,
@@ -39,4 +34,23 @@ create_drawable!(Player, Color::White, '@');
 
 pub struct Monster {
     species: Species
+}
+
+impl Actor for Entity {
+    fn before(action: Action) -> bool {
+        match action {
+            Action::Examine(examine) => {},
+            _ => {return true;}
+        }
+        return true;
+    }
+    fn after(action: Action) -> bool {
+        return true;
+    }
+    fn react_before(action: Action) -> bool {
+        return true;
+    }
+    fn react_after(action: Action) -> bool {
+        return true;
+    }
 }
