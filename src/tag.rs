@@ -2,6 +2,7 @@ use enum_map::{enum_map, Enum, EnumMap};
 
 #[derive(Clone, Copy, Debug, Enum)]
 pub enum Tag {
+    Animate,
     Beverage,
     Burning,
     Cold,
@@ -33,6 +34,7 @@ pub type TagMap = EnumMap<Tag, Option<Tag>>;
 
 pub fn generate_tag_map() -> TagMap {
     let result: TagMap = enum_map! {
+        Tag::Animate => None,
         Tag::Beverage => Some(Tag::Consumable),
         Tag::Burning => Some(Tag::Hot),
         Tag::Cold => None,

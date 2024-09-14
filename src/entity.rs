@@ -6,6 +6,11 @@ pub struct Species;
 
 pub struct Entity;
 
+pub trait Actor {
+    fn before() -> bool;
+    fn react() -> bool;
+}
+
 pub struct Player {
     pub pos_x: u16,
     pub pos_y: u16
