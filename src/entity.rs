@@ -1,6 +1,6 @@
 use crossterm::style::Color;
 
-use crate::{action::{Action, Actor, Examine}, create_drawable, map::Location, terminal_util::Drawable};
+use crate::{action::{Action, Actor}, create_drawable, map::Location, terminal_util::Drawable};
 
 pub struct Species;
 
@@ -54,3 +54,5 @@ impl Actor for Entity {
         return true;
     }
 }
+
+

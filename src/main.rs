@@ -12,6 +12,7 @@ mod item;
 mod game;
 mod map;
 mod material;
+mod tabletop;
 mod tag;
 mod ui;
 

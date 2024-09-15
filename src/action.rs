@@ -155,7 +155,7 @@ pub enum Action {
 
 pub trait Actionable {
     fn before() -> bool;
-    fn during(argument: ActionArgument) -> bool;
+    fn during(noun: Option<Entity>, second: Option<Entity>) -> bool;
     fn after() -> bool;
 }
 
@@ -169,7 +169,7 @@ macro_rules! stub_before {
 
 macro_rules! stub_during {
     () => {
-        fn during(argument: ActionArgument) -> bool {
+        fn during(noun: Option<Entity>, second: Option<Entity>) -> bool {
             return true;
         }
     };
@@ -183,15 +183,9 @@ macro_rules! stub_after {
     };
 }
 
-pub enum ActionArgument {
-    Zero,
-    One(Entity),
-    Two(Entity, Entity)
-}
-
 pub struct ActionInfo {
     is_meta: bool,
-    expected_argument: ActionArgument
+    expected_arguments: u8
 }
 
 pub trait Actor {
@@ -201,12 +195,8 @@ pub trait Actor {
     fn react_after(action: Action) -> bool;
 }
 
-fn execute_action(action: Action, argument: ActionArgument) {
-    let first_argument: Option<Entity> = match argument {
-        ActionArgument::Zero => None,
-        ActionArgument::One(target) => Some(target),
-        ActionArgument::Two(target, _) => Some(target),
-    };
+fn execute_action(action: Action, noun: Option<Entity>, second: Option<Entity>) {
+    
     //TODO(ches) skip before and after stages for meta actions
     
     //TODO(ches) react_before of things in vicinity
@@ -221,13 +211,8 @@ fn execute_action(action: Action, argument: ActionArgument) {
 
 impl Actionable for Examine {
     stub_before!();
-    fn during(argument: ActionArgument) -> bool {
-        let target: Entity = match argument {
-            ActionArgument::Zero => return false,
-            ActionArgument::One(target) => target,
-            ActionArgument::Two(_, _) => return false,
-        };
-
+    fn during(noun: Option<Entity>, second: Option<Entity>) -> bool {
+        
         return true;
     }
     stub_after!();
