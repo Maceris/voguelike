@@ -2,6 +2,7 @@ use std::{thread, time::{Duration, SystemTime}};
 
 use entity::Player;
 use game::{DataTables, DebugInfo, Game, GameState};
+use gen::map_gen;
 use map::{Location, GameMap};
 use ringbuffer::{AllocRingBuffer, RingBuffer};
 use ui::terminal::terminal_util;
@@ -10,6 +11,7 @@ mod action;
 mod entity;
 mod item;
 mod game;
+mod gen;
 mod map;
 mod material;
 mod tabletop;
@@ -55,24 +57,12 @@ fn main() {
 
     game.current_map = Some(Box::new(GameMap::new(render_state.screen.width, render_state.screen.height)));
 
-    let map_height = game.current_map.as_ref().unwrap().height;
-    let map_width = game.current_map.as_ref().unwrap().width;
-
-    let y_max: u16 = map_height - 1;
-    let x_max: u16 = map_width - 1;
-    for y in 0..map_height {
-        for x in 0..map_width {
-            if y == 0 || y == y_max || x == 0 || x == x_max {
-                game.current_map.as_mut().unwrap().set(x, y, map::Tile::Wall);
-            }
-            else {
-                game.current_map.as_mut().unwrap().set(x, y, map::Tile::Floor);
-            }
-        }
-    }
+    map_gen::populate_map(game.current_map.as_mut().unwrap());
 
     const FRAME_DURATION: Duration = Duration::from_nanos(NANOS_PER_FRAME as u64);
 
+    let y_max: u16 = game.current_map.as_ref().unwrap().height - 1;
+    let x_max: u16 = game.current_map.as_ref().unwrap().width - 1;
     let mut dx: i16 = 1;
     let mut dy: i16 = 1;
 
