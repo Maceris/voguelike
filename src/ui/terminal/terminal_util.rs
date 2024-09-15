@@ -1,10 +1,12 @@
-use crossterm::{cursor, execute, queue, style::Color, terminal};
+use crossterm::{cursor, event::{poll, read, Event, KeyEvent}, execute, queue, style::Color, terminal};
 use ringbuffer::RingBuffer;
-use std::{char::from_digit, error::Error, fmt, io::{self, Write}};
+use std::{char::from_digit, error::Error, fmt, io::{self, Write}, time::Duration};
 
 use crossterm::style;
 
-use crate::{entity::Player, game::{DebugInfo, Game}, map::{Location, Tile}, FRAMES_PER_SECOND};
+use crate::{action::{Action, ActionRequest}, entity::{self, Player}, game::{DebugInfo, Game, GameState}, map::{Location, Tile}, FRAMES_PER_SECOND};
+
+use super::key_mapping;
 
 pub const MIN_WIDTH: u16 = 80;
 pub const MIN_HEIGHT: u16 = 24;
@@ -154,10 +156,10 @@ fn get_average_fps(debug_info: &DebugInfo) -> u32 {
 }
 
 fn generate_frame(render_state: &mut RenderState, game: &Game) {
-    if game.current_map.is_some() {
+    if game.state == GameState::Running {
         for y in 0..render_state.screen.height {
             for x in 0..render_state.screen.width {
-                let tile: Tile = game.current_map.as_ref().unwrap().get(x, y);
+                let tile: Tile = game.current_map.as_ref().get(x, y);
                 let draw_info: &DrawInfo = &game.data_tables.tile_map[tile].draw_info;
                 render_state.current_frame.set_color(x, y, draw_info.color);
                 render_state.current_frame.set_icon(x, y, draw_info.icon);
@@ -253,3 +255,37 @@ pub fn print_screen(game: &Game, render_state: &mut RenderState) {
     panic_on_error!(_print_screen(game, render_state));
 }
 
+fn handle_key(event: KeyEvent, game: &mut Game) {
+    let action = key_mapping::map_input(event, game.state);
+
+    if action.is_some() {
+        let request = ActionRequest {
+            actor: game.player.id,
+            action: action.unwrap(),
+            noun: entity::ID_NO_ENTITY,
+            second: entity::ID_NO_ENTITY
+        };
+        game.action_queue.push_back(request);
+    }
+}
+
+fn _read_input(game: &mut Game) -> Result<(), std::io::Error> {
+    const IMMEDIATELY: Duration = Duration::from_secs(0);
+
+    if poll(IMMEDIATELY)? {
+        match read()? {
+            //Event::FocusGained => println!("FocusGained"),
+            //Event::FocusLost => println!("FocusLost"),
+            Event::Key(event) => handle_key(event, game),
+            //Event::Mouse(event) => println!("{:?}", event),
+            //Event::Paste(data) => println!("Pasted {:?}", data),
+            //Event::Resize(width, height) => println!("New size {}x{}", width, height),
+            _ => {}
+        }
+    }
+
+    Ok(())
+}
+pub fn read_input(game: &mut Game) {
+    panic_on_error!(_read_input(game));
+}

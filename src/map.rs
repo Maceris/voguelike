@@ -74,6 +74,14 @@ impl GameMap {
         let index: usize = (y * self.width + x).into();
         self.tiles[index] = tile;
     }
+
+    pub fn empty_map() -> Self {
+        Self {
+            width: 0,
+            height: 0,
+            tiles: Vec::new()
+        }
+    }
 }
 
 pub trait Location {

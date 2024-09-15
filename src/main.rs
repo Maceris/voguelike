@@ -1,6 +1,7 @@
-use std::{thread, time::{Duration, SystemTime}};
+use std::{collections::VecDeque, thread, time::{Duration, SystemTime}};
 
-use entity::Player;
+use action::ActionRequest;
+use entity::{Entity, Player};
 use game::{DataTables, DebugInfo, Game, GameState};
 use gen::map_gen;
 use map::{Location, GameMap};
@@ -43,33 +44,44 @@ fn main() {
     let mut game = Game {
         state: GameState::Menu,
         player: Player{
+            id: entity::ID_PLAYER,
             pos_x: 5,
             pos_y: 5
         },
-        current_map: None,
+        current_map: Box::new(GameMap::empty_map()),
         data_tables: DataTables {
             tile_map: map::generate_tile_map(),
             tag_map: tag::generate_tag_map(),
             material_map: material::generate_material_map(),
         },
-        debug_info: DebugInfo{fps_history: AllocRingBuffer::new(100)}
+        debug_info: DebugInfo{fps_history: AllocRingBuffer::new(100)},
+        action_queue: VecDeque::with_capacity(1000),
     };
 
-    game.current_map = Some(Box::new(GameMap::new(render_state.screen.width, render_state.screen.height)));
+    game.current_map = Box::new(GameMap::new(render_state.screen.width, render_state.screen.height));
 
-    map_gen::populate_map(game.current_map.as_mut().unwrap());
+    map_gen::populate_map(game.current_map.as_mut());
 
     const FRAME_DURATION: Duration = Duration::from_nanos(NANOS_PER_FRAME as u64);
 
-    let y_max: u16 = game.current_map.as_ref().unwrap().height - 1;
-    let x_max: u16 = game.current_map.as_ref().unwrap().width - 1;
+    let y_max: u16 = game.current_map.as_ref().height - 1;
+    let x_max: u16 = game.current_map.as_ref().width - 1;
     let mut dx: i16 = 1;
     let mut dy: i16 = 1;
 
-    let start = SystemTime::now();
-    while start.elapsed().unwrap().as_secs() < 10 {
+    game.state = GameState::Running;
+
+    while game.state != GameState::QuitRequested {
         let frame_start = SystemTime::now();
         
+        terminal_util::read_input(&mut game);
+
+        if !game.action_queue.is_empty() {
+            let action:ActionRequest = game.action_queue.pop_front().unwrap();
+            
+            action::execute_action(&mut game, action.action, None::<Entity>, None::<Entity>);
+        }
+
         terminal_util::print_screen(&game, &mut render_state);
 
         let player: &mut Player = &mut game.player;
@@ -101,7 +113,7 @@ fn main() {
         }
         
     }
-    
+
     terminal_util::game_drawing_end();
 
 }

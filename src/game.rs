@@ -1,11 +1,15 @@
+use std::collections::VecDeque;
+
 use ringbuffer::AllocRingBuffer;
 
-use crate::{entity::Player, map::{GameMap, TileMap}, material::MaterialMap, tag::TagMap};
+use crate::{action::ActionRequest, entity::Player, map::{GameMap, TileMap}, material::MaterialMap, tag::TagMap};
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum GameState {
     Menu,
     Paused,
-    Running
+    Running,
+    QuitRequested
 }
 
 pub struct DebugInfo {
@@ -13,15 +17,16 @@ pub struct DebugInfo {
 }
 
 pub struct DataTables {
-    pub tile_map: TileMap,
-    pub tag_map: TagMap,
     pub material_map: MaterialMap,
+    pub tag_map: TagMap,
+    pub tile_map: TileMap,
 }
 
 pub struct Game {
-    pub state: GameState,
-    pub player: Player,
-    pub current_map: Option<Box<GameMap>>,
+    pub action_queue: VecDeque<ActionRequest>,
+    pub current_map: Box<GameMap>,
     pub data_tables: DataTables,
-    pub debug_info: DebugInfo
+    pub debug_info: DebugInfo,
+    pub player: Player,
+    pub state: GameState,
 }

@@ -1,6 +1,6 @@
 use traits::create_action;
 
-use crate::entity::Entity;
+use crate::{entity::{Entity, EntityID}, game::{Game, GameState}};
 
 create_action!(Quit);
 create_action!(Restart);
@@ -77,11 +77,15 @@ create_action!(Wave);
 create_action!(WaveHands);
 create_action!(Wear);
 
+#[derive(Clone, Copy, Debug)]
 pub enum Action {
+    // Meta actions
     Quit(Quit),
     Restart(Restart),
     Restore(Restore),
     Save(Save),
+
+    // Regular actions
     Answer(Answer),
     Ask(Ask),
     AskFor(AskFor),
@@ -153,24 +157,31 @@ pub enum Action {
     Wear(Wear),
 }
 
+#[macro_export]
+macro_rules! new_action {
+    ($class:ident) => {
+        Action::$class($class{})
+    };
+}
+
 pub trait Actionable {
     fn before() -> bool;
-    fn during(noun: Option<Entity>, second: Option<Entity>) -> bool;
+    fn during(game: &mut Game, noun: &Option<impl Actor>, second: &Option<impl Actor>) -> bool;
     fn after() -> bool;
 }
 
 macro_rules! stub_before {
     () => {
         fn before() -> bool {
-            return true;
+            return false;
         }
     };
 }
 
 macro_rules! stub_during {
     () => {
-        fn during(noun: Option<Entity>, second: Option<Entity>) -> bool {
-            return true;
+        fn during(game: &mut Game, noun: &Option<impl Actor>, second: &Option<impl Actor>) -> bool {
+            return false;
         }
     };
 }
@@ -178,42 +189,150 @@ macro_rules! stub_during {
 macro_rules! stub_after {
     () => {
         fn after() -> bool {
-            return true;
+            return false;
         }
     };
 }
 
-pub struct ActionInfo {
-    is_meta: bool,
-    expected_arguments: u8
+pub struct ActionRequest {
+    pub actor: EntityID,
+    pub action: Action,
+    pub noun: EntityID,
+    pub second: EntityID,
+}
+
+pub fn is_meta(action: Action) -> bool {
+    return match action {
+        Action::Quit(_) => true,
+        Action::Restart(_) => true,
+        Action::Restore(_) => true,
+        Action::Save(_) => true,
+        _ => false
+    };
 }
 
 pub trait Actor {
-    fn before(action: Action) -> bool;
-    fn after(action: Action) -> bool;
-    fn react_before(action: Action) -> bool;
-    fn react_after(action: Action) -> bool;
+    fn before(&self, action: Action) -> bool;
+    fn after(&self, action: Action) -> bool;
+    fn react_before(&self, action: Action) -> bool;
+    fn react_after(&self, action: Action) -> bool;
 }
 
-fn execute_action(action: Action, noun: Option<Entity>, second: Option<Entity>) {
+pub fn execute_action(game: &mut Game, action: Action, noun: Option<impl Actor>, second: Option<impl Actor>) {
     
-    //TODO(ches) skip before and after stages for meta actions
-    
+    if !is_meta(action) {
+        if noun.is_some() && noun.as_ref().unwrap().before(action) {
+            return;
+        }
+    }
+
+    let during_result: bool = match action {
+        Action::Quit(Quit) => Quit::during(game, &noun, &second),
+        Action::Restart(Restart) => false,
+        Action::Restore(Restore) => false,
+        Action::Save(Save) => false,
+        Action::Answer(Answer) => false,
+        Action::Ask(Ask) => false,
+        Action::AskFor(AskFor) => false,
+        Action::Attack(Attack) => false,
+        Action::Blow(Blow) => false,
+        Action::Burn(Burn) => false,
+        Action::Buy(Buy) => false,
+        Action::Clean(Clean) => false,
+        Action::Climb(Climb) => false,
+        Action::Close(Close) => false,
+        Action::Consult(Consult) => false,
+        Action::Crush(Crush) => false,
+        Action::Cut(Cut) => false,
+        Action::Dig(Dig) => false,
+        Action::Disrobe(Disrobe) => false,
+        Action::Drink(Drink) => false,
+        Action::Drop(Drop) => false,
+        Action::Eat(Eat) => false,
+        Action::Empty(Empty) => false,
+        Action::Enter(Enter) => false,
+        Action::Examine(Examine) => Examine::during(game, &noun, &second),
+        Action::Exit(Exit) => false,
+        Action::Fill(Fill) => false,
+        Action::GetOff(GetOff) => false,
+        Action::Give(Give) => false,
+        Action::Go(Go) => false,
+        Action::Insert(Insert) => false,
+        Action::Inventory(Inventory) => false,
+        Action::Jump(Jump) => false,
+        Action::JumpOver(JumpOver) => false,
+        Action::Kiss(Kiss) => false,
+        Action::Listen(Listen) => false,
+        Action::Lock(Lock) => false,
+        Action::Look(Look) => false,
+        Action::LookUnder(LookUnder) => false,
+        Action::Open(Open) => false,
+        Action::Order(Order) => false,
+        Action::Pray(Pray) => false,
+        Action::Pull(Pull) => false,
+        Action::Push(Push) => false,
+        Action::PushDir(PushDir) => false,
+        Action::PutOn(PutOn) => false,
+        Action::Remove(Remove) => false,
+        Action::Search(Search) => false,
+        Action::Set(Set) => false,
+        Action::SetTo(SetTo) => false,
+        Action::Show(Show) => false,
+        Action::Sing(Sing) => false,
+        Action::Sleep(Sleep) => false,
+        Action::Smell(Smell) => false,
+        Action::Swim(Swim) => false,
+        Action::Swing(Swing) => false,
+        Action::SwitchOff(SwitchOff) => false,
+        Action::SwitchOn(SwitchOn) => false,
+        Action::Take(Take) => false,
+        Action::Taste(Taste) => false,
+        Action::Tell(Tell) => false,
+        Action::Think(Think) => false,
+        Action::ThrowAt(ThrowAt) => false,
+        Action::Tie(Tie) => false,
+        Action::Touch(Touch) => false,
+        Action::Turn(Turn) => false,
+        Action::Unlock(Unlock) => false,
+        Action::Wait(Wait) => false,
+        Action::Wake(Wake) => false,
+        Action::WakeOther(WakeOther) => false,
+        Action::Wave(Wave) => false,
+        Action::WaveHands(WaveHands) => false,
+        Action::Wear(Wear) => false,
+    };
+
     //TODO(ches) react_before of things in vicinity
     //TODO(ches) react_before of room
-    //TODO(ches) first object before, if at least one object
     
-    //TODO(ches) action during
+    if during_result {
+        return;
+    }
+
+    if !is_meta(action) {
+        if noun.is_some() && noun.as_ref().unwrap().after(action) {
+            return;
+        }
+    }
 
     //TODO(ches) react_after of things in vicinity
     //TODO(ches) react_after of room
 }
 
+impl Actionable for Quit {
+    stub_before!();
+    fn during(game: &mut Game, noun: &Option<impl Actor>, second: &Option<impl Actor>) -> bool {
+        game.state = GameState::QuitRequested;
+        return false;
+    }
+    stub_after!();
+}
+
 impl Actionable for Examine {
     stub_before!();
-    fn during(noun: Option<Entity>, second: Option<Entity>) -> bool {
+    fn during(game: &mut Game, noun: &Option<impl Actor>, second: &Option<impl Actor>) -> bool {
         
-        return true;
+        return false;
     }
     stub_after!();
 }

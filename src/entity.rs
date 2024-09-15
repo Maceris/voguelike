@@ -6,7 +6,14 @@ pub struct Species;
 
 pub struct Entity;
 
+pub type EntityID = u128;
+
+pub const ID_NO_ENTITY: EntityID = 0;
+pub const ID_WORLD: EntityID = 1;
+pub const ID_PLAYER: EntityID = 2;
+
 pub struct Player {
+    pub id: EntityID,
     pub pos_x: u16,
     pub pos_y: u16
 }
@@ -37,21 +44,21 @@ pub struct Monster {
 }
 
 impl Actor for Entity {
-    fn before(action: Action) -> bool {
+    fn before(&self, action: Action) -> bool {
         match action {
             Action::Examine(examine) => {},
-            _ => {return true;}
+            _ => {return false;}
         }
-        return true;
+        return false;
     }
-    fn after(action: Action) -> bool {
-        return true;
+    fn after(&self, _action: Action) -> bool {
+        return false;
     }
-    fn react_before(action: Action) -> bool {
-        return true;
+    fn react_before(&self, _action: Action) -> bool {
+        return false;
     }
-    fn react_after(action: Action) -> bool {
-        return true;
+    fn react_after(&self, _action: Action) -> bool {
+        return false;
     }
 }
 
