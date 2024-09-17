@@ -40,6 +40,7 @@ create_action!(Jump);
 create_action!(JumpOver);
 create_action!(Kiss);
 create_action!(Listen);
+create_action!(LetGo);
 create_action!(Lock);
 create_action!(Look);
 create_action!(LookUnder);
@@ -50,6 +51,7 @@ create_action!(Pull);
 create_action!(Push);
 create_action!(PushDir);
 create_action!(PutOn);
+create_action!(Receive);
 create_action!(Remove);
 create_action!(Search);
 create_action!(Set);
@@ -67,6 +69,7 @@ create_action!(Taste);
 create_action!(Tell);
 create_action!(Think);
 create_action!(ThrowAt);
+create_action!(ThrownAt);
 create_action!(Tie);
 create_action!(Touch);
 create_action!(Turn);
@@ -119,6 +122,7 @@ pub enum Action {
     Jump(Jump),
     JumpOver(JumpOver),
     Kiss(Kiss),
+    LetGo(LetGo),
     Listen(Listen),
     Lock(Lock),
     Look(Look),
@@ -130,6 +134,7 @@ pub enum Action {
     Push(Push),
     PushDir(PushDir),
     PutOn(PutOn),
+    Receive(Receive),
     Remove(Remove),
     Search(Search),
     Set(Set),
@@ -147,6 +152,7 @@ pub enum Action {
     Tell(Tell),
     Think(Think),
     ThrowAt(ThrowAt),
+    ThrownAt(ThrownAt),
     Tie(Tie),
     Touch(Touch),
     Turn(Turn),
@@ -249,80 +255,9 @@ pub fn execute_action(game: &mut Game, action: Action, noun: Option<impl Actor>,
     }
 
     let during_result: bool = match action {
-        Action::ExitMenu(ExitMenu) => false,
         Action::Quit(Quit) => Quit::during(game, &noun, &second),
-        Action::Restart(Restart) => false,
-        Action::Restore(Restore) => false,
-        Action::Save(Save) => false,
-        Action::Answer(Answer) => false,
-        Action::Ask(Ask) => false,
-        Action::AskFor(AskFor) => false,
-        Action::Attack(Attack) => false,
-        Action::Blow(Blow) => false,
-        Action::Burn(Burn) => false,
-        Action::Buy(Buy) => false,
-        Action::Clean(Clean) => false,
-        Action::Climb(Climb) => false,
-        Action::Close(Close) => false,
-        Action::Consult(Consult) => false,
-        Action::Crush(Crush) => false,
-        Action::Cut(Cut) => false,
-        Action::Dig(Dig) => false,
-        Action::Disrobe(Disrobe) => false,
-        Action::Drink(Drink) => false,
-        Action::Drop(Drop) => false,
-        Action::Eat(Eat) => false,
-        Action::Empty(Empty) => false,
-        Action::Enter(Enter) => false,
         Action::Examine(Examine) => Examine::during(game, &noun, &second),
-        Action::Exit(Exit) => false,
-        Action::Fill(Fill) => false,
-        Action::GetOff(GetOff) => false,
-        Action::Give(Give) => false,
-        Action::Go(Go) => false,
-        Action::Insert(Insert) => false,
-        Action::Inventory(Inventory) => false,
-        Action::Jump(Jump) => false,
-        Action::JumpOver(JumpOver) => false,
-        Action::Kiss(Kiss) => false,
-        Action::Listen(Listen) => false,
-        Action::Lock(Lock) => false,
-        Action::Look(Look) => false,
-        Action::LookUnder(LookUnder) => false,
-        Action::Open(Open) => false,
-        Action::Order(Order) => false,
-        Action::Pray(Pray) => false,
-        Action::Pull(Pull) => false,
-        Action::Push(Push) => false,
-        Action::PushDir(PushDir) => false,
-        Action::PutOn(PutOn) => false,
-        Action::Remove(Remove) => false,
-        Action::Search(Search) => false,
-        Action::Set(Set) => false,
-        Action::SetTo(SetTo) => false,
-        Action::Show(Show) => false,
-        Action::Sing(Sing) => false,
-        Action::Sleep(Sleep) => false,
-        Action::Smell(Smell) => false,
-        Action::Swim(Swim) => false,
-        Action::Swing(Swing) => false,
-        Action::SwitchOff(SwitchOff) => false,
-        Action::SwitchOn(SwitchOn) => false,
-        Action::Take(Take) => false,
-        Action::Taste(Taste) => false,
-        Action::Tell(Tell) => false,
-        Action::Think(Think) => false,
-        Action::ThrowAt(ThrowAt) => false,
-        Action::Tie(Tie) => false,
-        Action::Touch(Touch) => false,
-        Action::Turn(Turn) => false,
-        Action::Unlock(Unlock) => false,
-        Action::Wait(Wait) => false,
-        Action::Wake(Wake) => false,
-        Action::WakeOther(WakeOther) => false,
-        Action::Wave(Wave) => false,
-        Action::WaveHands(WaveHands) => false,
-        Action::Wear(Wear) => false,
+        _ => false,
     };
 
     //TODO(ches) react_before of things in vicinity

@@ -1,4 +1,4 @@
-use std::{collections::{HashMap, VecDeque}, iter::Map, thread, time::{Duration, SystemTime}};
+use std::{collections::{HashMap, VecDeque}, iter::Map, thread, time::{Duration, Instant, SystemTime}};
 
 use action::ActionRequest;
 use entity::Entity;
@@ -73,8 +73,18 @@ fn main() {
 
     game.state = GameState::Running;
 
+    let mut frame_start = Instant::now();
+    let mut first_frame: bool = true;
     while game.state != GameState::QuitRequested {
-        let frame_start = SystemTime::now();
+        if first_frame {
+            first_frame = false;
+        } else {
+            let time_since_last_frame_start = frame_start.elapsed();
+            let fps: f64 = 1_000_000_000.0 / f64::max(1.0, time_since_last_frame_start.as_nanos() as f64);
+            game.debug_info.fps_history.push(fps.round() as u32);
+        }
+
+        frame_start = Instant::now();
         
         terminal_util::read_input(&mut game);
 
@@ -104,14 +114,11 @@ fn main() {
         player.set_x((player.get_x() as i16 + dx) as u16);
         player.set_y((player.get_y() as i16 + dy) as u16);
 
-        let elapsed_time = frame_start.elapsed().unwrap();
-
-        let fps: u128 = 1_000_000_000 / u128::max(1, elapsed_time.as_nanos());
-        game.debug_info.fps_history.push(fps as u32);
+        let elapsed_time = frame_start.elapsed();
 
         if elapsed_time < FRAME_DURATION {
             let time_to_sleep = FRAME_DURATION - elapsed_time;
-            thread::sleep(time_to_sleep);
+            thread::sleep(time_to_sleep.mul_f64(0.95));
         }
         
     }

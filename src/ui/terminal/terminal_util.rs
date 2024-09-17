@@ -144,15 +144,13 @@ fn diff(old: &ScreenBuffer, new: &ScreenBuffer, diff: &mut Vec<bool>) {
 }
 
 fn get_average_fps(debug_info: &DebugInfo) -> u32 {
-    let mut sum: u128 = 0;
-    let mut count: u128 = 0;
+    let mut sum: f64 = 0.0;
 
     for i in 0..debug_info.fps_history.len() {
-        sum += *debug_info.fps_history.get(i).unwrap() as u128;
-        count += 1;
+        sum += *debug_info.fps_history.get(i).unwrap() as f64;
     }
 
-    return (sum / u128::max(1, count)) as u32;
+    return (sum / debug_info.fps_history.len() as f64).round() as u32;
 }
 
 fn generate_frame(render_state: &mut RenderState, game: &Game) {
