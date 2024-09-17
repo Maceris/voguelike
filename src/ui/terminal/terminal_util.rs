@@ -4,7 +4,7 @@ use std::{char::from_digit, error::Error, fmt, io::{self, Write}, time::Duration
 
 use crossterm::style;
 
-use crate::{action::{Action, ActionRequest}, entity::{self, Player}, game::{DebugInfo, Game, GameState}, map::{Location, Tile}, FRAMES_PER_SECOND};
+use crate::{action::ActionRequest, entity::Entity, game::{DebugInfo, Game, GameState}, map::{Location, Tile}, FRAMES_PER_SECOND};
 
 use super::key_mapping;
 
@@ -166,7 +166,7 @@ fn generate_frame(render_state: &mut RenderState, game: &Game) {
             }
         }
 
-        let player: &Player = &game.player;
+        let player: &Entity = &game.player;
 
         render_state.current_frame.set_color(player.get_x(), player.get_y(), player.get_color());
         render_state.current_frame.set_icon(player.get_x(), player.get_y(), player.get_icon());
@@ -256,16 +256,10 @@ pub fn print_screen(game: &Game, render_state: &mut RenderState) {
 }
 
 fn handle_key(event: KeyEvent, game: &mut Game) {
-    let action = key_mapping::map_input(event, game.state);
-
+    let action: Option<ActionRequest> = key_mapping::map_input(event, game);
+ 
     if action.is_some() {
-        let request = ActionRequest {
-            actor: game.player.id,
-            action: action.unwrap(),
-            noun: entity::ID_NO_ENTITY,
-            second: entity::ID_NO_ENTITY
-        };
-        game.action_queue.push_back(request);
+        game.action_queue.push_back(action.unwrap());
     }
 }
 

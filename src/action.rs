@@ -2,6 +2,7 @@ use traits::create_action;
 
 use crate::{entity::{Entity, EntityID}, game::{Game, GameState}};
 
+create_action!(ExitMenu);
 create_action!(Quit);
 create_action!(Restart);
 create_action!(Restore);
@@ -80,6 +81,7 @@ create_action!(Wear);
 #[derive(Clone, Copy, Debug)]
 pub enum Action {
     // Meta actions
+    ExitMenu(ExitMenu),
     Quit(Quit),
     Restart(Restart),
     Restore(Restore),
@@ -180,7 +182,7 @@ macro_rules! stub_before {
 
 macro_rules! stub_during {
     () => {
-        fn during(game: &mut Game, noun: &Option<impl Actor>, second: &Option<impl Actor>) -> bool {
+        fn during(_game: &mut Game, _noun: &Option<impl Actor>, _second: &Option<impl Actor>) -> bool {
             return false;
         }
     };
@@ -203,6 +205,7 @@ pub struct ActionRequest {
 
 pub fn is_meta(action: Action) -> bool {
     return match action {
+        Action::ExitMenu(_) => true,
         Action::Quit(_) => true,
         Action::Restart(_) => true,
         Action::Restore(_) => true,
@@ -218,6 +221,25 @@ pub trait Actor {
     fn react_after(&self, action: Action) -> bool;
 }
 
+#[macro_export]
+macro_rules! stub_actor {
+    () => {
+        fn before(&self, _action: Action) -> bool {
+            return false;
+        }
+        fn after(&self, _action: Action) -> bool {
+            return false;
+        }
+        fn react_before(&self, _action: Action) -> bool {
+            return false;
+        }
+        fn react_after(&self, _action: Action) -> bool {
+            return false;
+        }
+    }
+}
+
+
 pub fn execute_action(game: &mut Game, action: Action, noun: Option<impl Actor>, second: Option<impl Actor>) {
     
     if !is_meta(action) {
@@ -227,6 +249,7 @@ pub fn execute_action(game: &mut Game, action: Action, noun: Option<impl Actor>,
     }
 
     let during_result: bool = match action {
+        Action::ExitMenu(ExitMenu) => false,
         Action::Quit(Quit) => Quit::during(game, &noun, &second),
         Action::Restart(Restart) => false,
         Action::Restore(Restore) => false,
@@ -321,7 +344,7 @@ pub fn execute_action(game: &mut Game, action: Action, noun: Option<impl Actor>,
 
 impl Actionable for Quit {
     stub_before!();
-    fn during(game: &mut Game, noun: &Option<impl Actor>, second: &Option<impl Actor>) -> bool {
+    fn during(game: &mut Game, _noun: &Option<impl Actor>, _second: &Option<impl Actor>) -> bool {
         game.state = GameState::QuitRequested;
         return false;
     }
@@ -330,9 +353,6 @@ impl Actionable for Quit {
 
 impl Actionable for Examine {
     stub_before!();
-    fn during(game: &mut Game, noun: &Option<impl Actor>, second: &Option<impl Actor>) -> bool {
-        
-        return false;
-    }
+    stub_during!();
     stub_after!();
 }

@@ -1,7 +1,7 @@
-use std::{collections::VecDeque, thread, time::{Duration, SystemTime}};
+use std::{collections::{HashMap, VecDeque}, iter::Map, thread, time::{Duration, SystemTime}};
 
 use action::ActionRequest;
-use entity::{Entity, Player};
+use entity::Entity;
 use game::{DataTables, DebugInfo, Game, GameState};
 use gen::map_gen;
 use map::{Location, GameMap};
@@ -42,12 +42,8 @@ fn main() {
     };
 
     let mut game = Game {
-        state: GameState::Menu,
-        player: Player{
-            id: entity::ID_PLAYER,
-            pos_x: 5,
-            pos_y: 5
-        },
+        action_queue: VecDeque::with_capacity(1000),
+        actors: HashMap::new(),
         current_map: Box::new(GameMap::empty_map()),
         data_tables: DataTables {
             tile_map: map::generate_tile_map(),
@@ -55,7 +51,13 @@ fn main() {
             material_map: material::generate_material_map(),
         },
         debug_info: DebugInfo{fps_history: AllocRingBuffer::new(100)},
-        action_queue: VecDeque::with_capacity(1000),
+        player: Entity{
+            id: entity::ID_PLAYER,
+            race: entity::Race::Human,
+            pos_x: 5,
+            pos_y: 5
+        },
+        state: GameState::Menu,
     };
 
     game.current_map = Box::new(GameMap::new(render_state.screen.width, render_state.screen.height));
@@ -84,7 +86,7 @@ fn main() {
 
         terminal_util::print_screen(&game, &mut render_state);
 
-        let player: &mut Player = &mut game.player;
+        let player: &mut Entity = &mut game.player;
 
         if dx > 0 && player.get_x() as i16 + dx >= x_max as i16 {
             dx = -dx;
