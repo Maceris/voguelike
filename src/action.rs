@@ -1,6 +1,6 @@
 use traits::create_action;
 
-use crate::{entity::{Entity, EntityID}, game::{Game, GameState}};
+use crate::{entity::EntityID, game::{Game, GameState}};
 
 create_action!(ExitMenu);
 create_action!(Quit);
@@ -174,7 +174,7 @@ macro_rules! new_action {
 
 pub trait Actionable {
     fn before() -> bool;
-    fn during(game: &mut Game, noun: &Option<impl Actor>, second: &Option<impl Actor>) -> bool;
+    fn during(game: &mut Game, noun: Noun, second: Noun) -> bool;
     fn after() -> bool;
 }
 
@@ -188,7 +188,7 @@ macro_rules! stub_before {
 
 macro_rules! stub_during {
     () => {
-        fn during(_game: &mut Game, _noun: &Option<impl Actor>, _second: &Option<impl Actor>) -> bool {
+        fn during(_game: &mut Game, _noun: Noun, _second: Noun) -> bool {
             return false;
         }
     };
@@ -202,11 +202,18 @@ macro_rules! stub_after {
     };
 }
 
+pub enum Noun {
+    Entity(EntityID),
+    Literal(String),
+    Nothing,
+    Number(i64),
+}
+
 pub struct ActionRequest {
     pub actor: EntityID,
     pub action: Action,
-    pub noun: EntityID,
-    pub second: EntityID,
+    pub noun: Noun,
+    pub second: Noun,
 }
 
 pub fn is_meta(action: Action) -> bool {
@@ -246,17 +253,19 @@ macro_rules! stub_actor {
 }
 
 
-pub fn execute_action(game: &mut Game, action: Action, noun: Option<impl Actor>, second: Option<impl Actor>) {
+pub fn execute_action(game: &mut Game, action_request: ActionRequest) {
     
+    let action = action_request.action;
+    let noun: Noun = action_request.noun;
+    let second: Noun = action_request.second;
+
     if !is_meta(action) {
-        if noun.is_some() && noun.as_ref().unwrap().before(action) {
-            return;
-        }
+        //TODO(ches) if noun exists and before rule returns true, return
     }
 
     let during_result: bool = match action {
-        Action::Quit(Quit) => Quit::during(game, &noun, &second),
-        Action::Examine(Examine) => Examine::during(game, &noun, &second),
+        Action::Quit(Quit) => Quit::during(game, noun, second),
+        Action::Examine(Examine) => Examine::during(game, noun, second),
         _ => false,
     };
 
@@ -268,9 +277,7 @@ pub fn execute_action(game: &mut Game, action: Action, noun: Option<impl Actor>,
     }
 
     if !is_meta(action) {
-        if noun.is_some() && noun.as_ref().unwrap().after(action) {
-            return;
-        }
+        //TODO(ches) if noun exists and after rule returns true, return
     }
 
     //TODO(ches) react_after of things in vicinity
@@ -279,7 +286,7 @@ pub fn execute_action(game: &mut Game, action: Action, noun: Option<impl Actor>,
 
 impl Actionable for Quit {
     stub_before!();
-    fn during(game: &mut Game, _noun: &Option<impl Actor>, _second: &Option<impl Actor>) -> bool {
+    fn during(game: &mut Game, _noun: Noun, _second: Noun) -> bool {
         game.state = GameState::QuitRequested;
         return false;
     }

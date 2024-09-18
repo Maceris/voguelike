@@ -4,7 +4,7 @@ use std::{char::from_digit, error::Error, fmt, io::{self, Write}, time::Duration
 
 use crossterm::style;
 
-use crate::{action::ActionRequest, entity::Entity, game::{DebugInfo, Game, GameState}, map::{Location, Tile}, FRAMES_PER_SECOND};
+use crate::{action::ActionRequest, game::{DebugInfo, Game, GameState}, map::Tile, FRAMES_PER_SECOND};
 
 use super::key_mapping;
 
@@ -59,20 +59,6 @@ pub struct DrawInfo {
 pub trait Drawable {
     fn get_color(&self) -> style::Color;
     fn get_icon(&self) -> char;
-}
-
-#[macro_export]
-macro_rules! create_drawable {
-    ($class:ty, $color:expr, $icon:expr) => {
-        impl Drawable for $class {
-            fn get_color(&self) -> Color {
-                return $color;
-            }
-            fn get_icon(&self) -> char {
-                return $icon;
-            }
-        }
-    };
 }
 
 struct ScreenBuffer {
@@ -164,10 +150,7 @@ fn generate_frame(render_state: &mut RenderState, game: &Game) {
             }
         }
 
-        let player: &Entity = &game.player;
-
-        render_state.current_frame.set_color(player.get_x(), player.get_y(), player.get_color());
-        render_state.current_frame.set_icon(player.get_x(), player.get_y(), player.get_icon());
+        //TODO(ches) Draw entities
     }
 
     let fps: u32 = u32::max(1, get_average_fps(&game.debug_info));

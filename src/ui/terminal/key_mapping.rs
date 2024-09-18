@@ -1,6 +1,6 @@
 use crossterm::event::{KeyCode, KeyEvent};
 
-use crate::{action::{Action, ActionRequest, ExitMenu, Quit}, entity, game::{Game, GameState}, new_action};
+use crate::{action::{Action, ActionRequest, Noun, Quit}, game::{Game, GameState}, new_action};
 
 pub fn map_input(event: KeyEvent, game: &Game) -> Option<ActionRequest> {
     return match game.state {
@@ -14,10 +14,10 @@ pub fn map_input(event: KeyEvent, game: &Game) -> Option<ActionRequest> {
 fn map_input_menu(event: KeyEvent, game: &Game) -> Option<ActionRequest> {
     if event.code == KeyCode::Esc {
         let request = ActionRequest {
-            actor: game.player.id,
+            actor: game.special_entities.player,
             action: new_action!(Quit),
-            noun: entity::ID_NO_ENTITY,
-            second: entity::ID_NO_ENTITY
+            noun: Noun::Nothing,
+            second: Noun::Nothing
         };
         return Some(request);
     }
@@ -31,19 +31,19 @@ fn map_input_paused(event: KeyEvent, game: &Game) -> Option<ActionRequest> {
 fn map_input_ingame(event: KeyEvent, game: &Game) -> Option<ActionRequest> {
     if event.code == KeyCode::Esc {
         let request = ActionRequest {
-            actor: game.player.id,
+            actor: game.special_entities.player,
             action: new_action!(Quit),
-            noun: entity::ID_NO_ENTITY,
-            second: entity::ID_NO_ENTITY
+            noun: Noun::Nothing,
+            second: Noun::Nothing
         };
         return Some(request);
     }
     if event.code == KeyCode::Char('7') {
         let request = ActionRequest {
-            actor: game.player.id,
+            actor: game.special_entities.player,
             action: new_action!(Quit),
-            noun: entity::ID_NO_ENTITY,
-            second: entity::ID_NO_ENTITY
+            noun: Noun::Nothing,
+            second: Noun::Nothing
         };
         return Some(request);
     }

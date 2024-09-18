@@ -1,12 +1,11 @@
-use std::{collections::VecDeque, thread, time::{Duration, Instant}};
+use std::{thread, time::{Duration, Instant}};
 
 use action::ActionRequest;
 use component::Components;
-use entity::Entity;
-use game::{DataTables, DebugInfo, Game, GameState};
+use game::{Game, GameState};
 use gen::map_gen;
-use map::{Location, GameMap};
-use ringbuffer::{AllocRingBuffer, RingBuffer};
+use map::GameMap;
+use ringbuffer::RingBuffer;
 use ui::terminal::terminal_util;
 
 mod action;
@@ -43,35 +42,22 @@ fn main() {
         Err(e) => panic!("{}", e)
     };
 
-    let mut game = Game {
-        action_queue: VecDeque::with_capacity(1000),
-        components: Components::new(),
-        current_map: Box::new(GameMap::empty_map()),
-        data_tables: DataTables {
-            tile_map: map::generate_tile_map(),
-            tag_map: tag::generate_tag_map(),
-            material_map: material::generate_material_map(),
-        },
-        debug_info: DebugInfo{fps_history: AllocRingBuffer::new(100)},
-        player: Entity{
-            id: entity::ID_PLAYER,
-            race: tabletop::Race::Human,
-            pos_x: 5,
-            pos_y: 5
-        },
-        state: GameState::Menu,
-    };
+    let mut game = Game::new();
+
+    //TODO(ches) initialize player
+    
+    // player: Entity{
+    //     id: entity::ID_PLAYER,
+    //     race: tabletop::Race::Human,
+    //     pos_x: 5,
+    //     pos_y: 5
+    // },
 
     game.current_map = Box::new(GameMap::new(render_state.screen.width, render_state.screen.height));
 
     map_gen::populate_map(game.current_map.as_mut());
 
     const FRAME_DURATION: Duration = Duration::from_nanos(NANOS_PER_FRAME as u64);
-
-    let y_max: u16 = game.current_map.as_ref().height - 1;
-    let x_max: u16 = game.current_map.as_ref().width - 1;
-    let mut dx: i16 = 1;
-    let mut dy: i16 = 1;
 
     game.state = GameState::Running;
 
@@ -93,28 +79,10 @@ fn main() {
         if !game.action_queue.is_empty() {
             let action:ActionRequest = game.action_queue.pop_front().unwrap();
             
-            action::execute_action(&mut game, action.action, None::<Entity>, None::<Entity>);
+            action::execute_action(&mut game, action);
         }
 
         terminal_util::print_screen(&game, &mut render_state);
-
-        let player: &mut Entity = &mut game.player;
-
-        if dx > 0 && player.get_x() as i16 + dx >= x_max as i16 {
-            dx = -dx;
-        }
-        else if dx < 0 && player.get_x() as i16 + dx <= 0 {
-            dx = -dx;
-        }
-        if dy > 0 && player.get_y() as i16 + dy >= y_max as i16 {
-            dy = -dy;
-        }
-        else if dy < 0 && player.get_y() as i16 + dy <= 0 {
-            dy = -dy;
-        }
-
-        player.set_x((player.get_x() as i16 + dx) as u16);
-        player.set_y((player.get_y() as i16 + dy) as u16);
 
         let elapsed_time = frame_start.elapsed();
 
