@@ -1,8 +1,8 @@
-use std::collections::{HashMap, VecDeque};
+use std::collections::VecDeque;
 
 use ringbuffer::AllocRingBuffer;
 
-use crate::{action::ActionRequest, entity::{Entity, EntityID}, map::{GameMap, TileMap}, material::MaterialMap, tag::TagMap};
+use crate::{action::ActionRequest, component::Components, entity::Entity, map::{GameMap, TileMap}, material::MaterialMap, tag::TagMap};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum GameState {
@@ -24,7 +24,7 @@ pub struct DataTables {
 
 pub struct Game {
     pub action_queue: VecDeque<ActionRequest>,
-    pub actors: HashMap<EntityID, Entity>,
+    pub components: Components,
     pub current_map: Box<GameMap>,
     pub data_tables: DataTables,
     pub debug_info: DebugInfo,

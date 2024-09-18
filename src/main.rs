@@ -1,6 +1,7 @@
-use std::{collections::{HashMap, VecDeque}, iter::Map, thread, time::{Duration, Instant, SystemTime}};
+use std::{collections::VecDeque, thread, time::{Duration, Instant}};
 
 use action::ActionRequest;
+use component::Components;
 use entity::Entity;
 use game::{DataTables, DebugInfo, Game, GameState};
 use gen::map_gen;
@@ -9,6 +10,7 @@ use ringbuffer::{AllocRingBuffer, RingBuffer};
 use ui::terminal::terminal_util;
 
 mod action;
+mod component;
 mod entity;
 mod item;
 mod game;
@@ -43,7 +45,7 @@ fn main() {
 
     let mut game = Game {
         action_queue: VecDeque::with_capacity(1000),
-        actors: HashMap::new(),
+        components: Components::new(),
         current_map: Box::new(GameMap::empty_map()),
         data_tables: DataTables {
             tile_map: map::generate_tile_map(),
@@ -53,7 +55,7 @@ fn main() {
         debug_info: DebugInfo{fps_history: AllocRingBuffer::new(100)},
         player: Entity{
             id: entity::ID_PLAYER,
-            race: entity::Race::Human,
+            race: tabletop::Race::Human,
             pos_x: 5,
             pos_y: 5
         },

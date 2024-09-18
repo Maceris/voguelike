@@ -1,18 +1,6 @@
 use crossterm::style::Color;
 
-use crate::{action::{Action, Actor}, map::Location, stub_actor, terminal_util::Drawable};
-
-pub enum Race {
-    Dragonborn,
-    Dwarf,
-    Elf,
-    Gnome,
-    HalfElf,
-    HalfOrc,
-    Halfling,
-    Human,
-    Tiefling
-}
+use crate::{action::{Action, Actor}, map::Location, stub_actor, tabletop::Race, terminal_util::Drawable};
 
 pub struct Entity {
     pub id: EntityID,
@@ -32,7 +20,7 @@ pub struct SouthWest;
 pub struct Up;
 pub struct Down;
 
-pub type EntityID = u128;
+pub type EntityID = u64;
 
 pub const ID_NO_ENTITY: EntityID = 0;
 pub const ID_WORLD: EntityID = 1;
@@ -88,22 +76,7 @@ impl Drawable for Entity {
 
 
 impl Actor for Entity {
-    fn before(&self, action: Action) -> bool {
-        match action {
-            Action::Examine(examine) => {},
-            _ => {return false;}
-        }
-        return false;
-    }
-    fn after(&self, _action: Action) -> bool {
-        return false;
-    }
-    fn react_before(&self, _action: Action) -> bool {
-        return false;
-    }
-    fn react_after(&self, _action: Action) -> bool {
-        return false;
-    }
+    stub_actor!();
 }
 
 impl Actor for North {

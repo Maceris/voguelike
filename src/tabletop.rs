@@ -1,3 +1,21 @@
+pub enum AdvantageStatus {
+    Advantage,
+    Normal,
+    Disadvantage
+}
+
+pub enum Alignment {
+    ChaoticEvil,
+    ChaoticGood,
+    ChaoticNeutral,
+    LawfulEvil,
+    LawfulGood,
+    LawfulNeutral,
+    Neutral,
+    NeutralEvil,
+    NeutralGood,
+}
+
 pub enum Class {
     Barbarian,
     Bard,
@@ -13,6 +31,18 @@ pub enum Class {
     Wizard
 }
 
+pub enum Race {
+    Dragonborn,
+    Dwarf,
+    Elf,
+    Gnome,
+    HalfElf,
+    HalfOrc,
+    Halfling,
+    Human,
+    Tiefling
+}
+
 pub enum Size {
     Tiny,
     Small,
@@ -20,12 +50,6 @@ pub enum Size {
     Large,
     Huge,
     Gargantuan
-}
-
-pub enum AdvantageStatus {
-    Advantage,
-    Normal,
-    Disadvantage
 }
 
 pub struct Stats {

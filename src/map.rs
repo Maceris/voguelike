@@ -44,6 +44,8 @@ pub struct TileInfo {
     pub draw_info: DrawInfo
 }
 
+pub type MapID = u32;
+
 pub struct GameMap {
     pub width: u16,
     pub height: u16,
