@@ -53,12 +53,12 @@ pub enum Size {
 }
 
 pub struct Stats {
-    charisma: u8,
-    constitution: u8,
-    dexterity: u8,
-    intelligence: u8,
-    strength: u8,
-    wisdom: u8
+    pub charisma: u8,
+    pub constitution: u8,
+    pub dexterity: u8,
+    pub intelligence: u8,
+    pub strength: u8,
+    pub wisdom: u8
 }
 
 pub fn modifier(ability: u8) -> i8 {
