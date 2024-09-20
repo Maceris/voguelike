@@ -47,14 +47,16 @@ pub struct TileInfo {
 pub type MapID = u32;
 
 pub struct GameMap {
+    pub id: MapID,
     pub width: u16,
     pub height: u16,
     pub tiles: Vec<Tile>
 }
 
 impl GameMap {
-    pub fn new(width: u16, height: u16) -> Self {
+    pub fn new(id: MapID, width: u16, height: u16) -> Self {
         let mut result = Self {
+            id,
             width,
             height,
             tiles: Vec::with_capacity((width * height).into())
@@ -79,6 +81,7 @@ impl GameMap {
 
     pub fn empty_map() -> Self {
         Self {
+            id: 0,
             width: 0,
             height: 0,
             tiles: Vec::new()

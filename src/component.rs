@@ -2,6 +2,29 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 
 use crate::{entity::EntityID, map::MapID, tabletop::{Alignment, Class, Race, Size, Stats}};
 
+pub struct Alive {
+    pub alive: bool
+}
+
+impl Alive {
+    pub fn new() -> Self {
+        Self {
+            alive: true
+        }
+    }
+}
+macro_rules! impl_get_alive {
+    () => {
+        fn get_alive(&self, entity: EntityID) -> Option<&Alive> {
+            return self.alive.get(to_index(entity));
+        }
+
+        fn get_alive_mut(&mut self, entity: EntityID) -> Option<&mut Alive> {
+            return self.alive.get_mut(to_index(entity));
+        }
+    };
+}
+
 pub struct Creature {
     pub alignment: Alignment,
     pub size: Size,
@@ -151,6 +174,7 @@ fn to_index(entity: EntityID) -> usize {
 
 pub struct CharacterComponents {
     next_id: AtomicUsize,
+    pub alive: Vec<Alive>,
     pub character: Vec<Character>,
     pub creature: Vec<Creature>,
     pub map_index: Vec<MapIndex>,
@@ -161,6 +185,7 @@ impl CharacterComponents {
     pub fn new() -> Self {
         Self {
             next_id: AtomicUsize::new(0),
+            alive: Vec::with_capacity(DEFAULT_CHARACTER_COMPONENT_COUNT),
             character: Vec::with_capacity(DEFAULT_CHARACTER_COMPONENT_COUNT),
             creature: Vec::with_capacity(DEFAULT_CHARACTER_COMPONENT_COUNT),
             map_index: Vec::with_capacity(DEFAULT_CHARACTER_COMPONENT_COUNT),
@@ -174,6 +199,7 @@ impl CharacterComponents {
         }
         let id: EntityID = self.next_id.fetch_add(1, Ordering::Relaxed);
         
+        self.alive.push(Alive::new());
         self.character.push(Character::new());
         self.creature.push(Creature::new());
         self.map_index.push(MapIndex::new());
@@ -183,9 +209,10 @@ impl CharacterComponents {
     }
 
     pub fn get_size(&self) -> usize {
-        return usize::min(self.next_id.load(Ordering::Relaxed), 1) - 1;
+        return self.next_id.load(Ordering::Relaxed);
     }
 
+    impl_get_alive!();
     impl_get_creature!();
     impl_get_character!();
     impl_get_map_index!();
@@ -194,12 +221,14 @@ impl CharacterComponents {
 
 pub struct MetaComponents {
     next_id: AtomicUsize,
+    alive: Vec<Alive>,
 }
 
 impl MetaComponents {
     pub fn new() -> Self {
         Self {
-            next_id: AtomicUsize::new(0)
+            next_id: AtomicUsize::new(0),
+            alive: Vec::with_capacity(DEFAULT_META_COMPONENT_COUNT),
         }
     }
 
@@ -209,16 +238,21 @@ impl MetaComponents {
         }
         let id: EntityID = self.next_id.fetch_add(1, Ordering::Relaxed);
         
+        self.alive.push(Alive::new());
+
         return id | TYPE_BITMASK_META;
     }
 
     pub fn get_size(&self) -> usize {
-        return usize::min(self.next_id.load(Ordering::Relaxed), 1) - 1;
+        return self.next_id.load(Ordering::Relaxed);
     }
+
+    impl_get_alive!();
 }
 
 pub struct MonsterComponents {
     next_id: AtomicUsize,
+    pub alive: Vec<Alive>,
     pub creature: Vec<Creature>,
     pub map_index: Vec<MapIndex>,
     pub position: Vec<Position>,
@@ -228,6 +262,7 @@ impl MonsterComponents {
     pub fn new() -> Self {
         Self {
             next_id: AtomicUsize::new(0),
+            alive: Vec::with_capacity(DEFAULT_MONSTER_COMPONENT_COUNT),
             creature: Vec::with_capacity(DEFAULT_MONSTER_COMPONENT_COUNT),
             map_index: Vec::with_capacity(DEFAULT_MONSTER_COMPONENT_COUNT),
             position: Vec::with_capacity(DEFAULT_MONSTER_COMPONENT_COUNT),
@@ -240,6 +275,7 @@ impl MonsterComponents {
         }
         let id: EntityID = self.next_id.fetch_add(1, Ordering::Relaxed);
 
+        self.alive.push(Alive::new());
         self.creature.push(Creature::new());
         self.map_index.push(MapIndex::new());
         self.position.push(Position::new());
@@ -248,9 +284,10 @@ impl MonsterComponents {
     }
 
     pub fn get_size(&self) -> usize {
-        return usize::min(self.next_id.load(Ordering::Relaxed), 1) - 1;
+        return self.next_id.load(Ordering::Relaxed);
     }
 
+    impl_get_alive!();
     impl_get_creature!();
     impl_get_map_index!();
     impl_get_position!();
@@ -258,6 +295,7 @@ impl MonsterComponents {
 
 pub struct ObjectComponents {
     next_id: AtomicUsize,
+    pub alive: Vec<Alive>,
     pub map_index: Vec<MapIndex>,
     pub position: Vec<Position>,
 }
@@ -266,6 +304,7 @@ impl ObjectComponents {
     pub fn new() -> Self {
         Self {
             next_id: AtomicUsize::new(0),
+            alive: Vec::with_capacity(DEFAULT_OBJECT_COMPONENT_COUNT),
             map_index: Vec::with_capacity(DEFAULT_OBJECT_COMPONENT_COUNT),
             position: Vec::with_capacity(DEFAULT_OBJECT_COMPONENT_COUNT),
         }
@@ -277,6 +316,7 @@ impl ObjectComponents {
         }
         let id: EntityID = self.next_id.fetch_add(1, Ordering::Relaxed);
 
+        self.alive.push(Alive::new());
         self.map_index.push(MapIndex::new());
         self.position.push(Position::new());
 
@@ -284,9 +324,10 @@ impl ObjectComponents {
     }
 
     pub fn get_size(&self) -> usize {
-        return usize::min(self.next_id.load(Ordering::Relaxed), 1) - 1;
+        return self.next_id.load(Ordering::Relaxed);
     }
 
+    impl_get_alive!();
     impl_get_map_index!();
     impl_get_position!();
 }
@@ -333,6 +374,24 @@ impl Components {
         return &self.object_components;
     }
     
+    fn get_alive(&self, entity: EntityID) -> Option<&Alive> {
+        return match get_entity_type(entity) {
+            EntityType::Character => self.character_components.get_alive(entity),
+            EntityType::Monster => self.monster_components.get_alive(entity),
+            EntityType::Meta => self.meta_components.get_alive(entity),
+            EntityType::Object => self.object_components.get_alive(entity),
+        };
+    }
+
+    fn get_alive_mut(&mut self, entity: EntityID) -> Option<&mut Alive> {
+        return match get_entity_type(entity) {
+            EntityType::Character => self.character_components.get_alive_mut(entity),
+            EntityType::Monster => self.monster_components.get_alive_mut(entity),
+            EntityType::Meta => self.meta_components.get_alive_mut(entity),
+            EntityType::Object => self.object_components.get_alive_mut(entity),
+        };
+    }
+
     pub fn get_creature(&self, entity: EntityID) -> Option<&Creature> {
         return match get_entity_type(entity) {
             EntityType::Character => self.character_components.get_creature(entity),

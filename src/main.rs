@@ -46,7 +46,7 @@ fn main() {
 
     initialize_player(&mut game);
 
-    game.current_map = Box::new(GameMap::new(render_state.screen.width, render_state.screen.height));
+    game.current_map = Box::new(GameMap::new(0, render_state.screen.width, render_state.screen.height));
 
     map_gen::populate_map(game.current_map.as_mut());
 
