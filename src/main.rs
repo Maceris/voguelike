@@ -44,6 +44,9 @@ fn main() {
 
     let mut game = Game::new();
 
+    let player_creature_box = game.components.get_component::<component::Creature>(game.special_entities.player);
+
+
     //TODO(ches) initialize player
     
     // player: Entity{

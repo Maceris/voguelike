@@ -1,2 +1,2 @@
 
-pub type EntityID = u64;
+pub type EntityID = usize;

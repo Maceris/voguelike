@@ -1,6 +1,8 @@
-use std::{sync::atomic::{AtomicU64, Ordering}};
+use std::{any::TypeId, sync::atomic::{AtomicU64, AtomicUsize, Ordering}};
 
 use crate::{entity::EntityID, map::MapID, tabletop::{Alignment, Class, Race, Size, Stats}};
+
+pub trait Component {}
 
 pub struct Creature {
     alignment: Alignment,
@@ -9,6 +11,7 @@ pub struct Creature {
     stats: Stats,
 }
 
+impl Component for Creature {}
 impl Creature {
     pub fn new() -> Self {
         Self {
@@ -31,6 +34,7 @@ pub struct Character {
     class: Class,
 }
 
+impl Component for Character {}
 impl Character {
     pub fn new() -> Self {
         Self {
@@ -43,6 +47,7 @@ pub struct MapLocation {
     pub map: MapID,
 }
 
+impl Component for MapLocation {}
 impl MapLocation {
     pub fn new() -> Self {
         Self {
@@ -56,6 +61,7 @@ pub struct Position {
     pub pos_y: u16,
 }
 
+impl Component for Position {}
 impl Position {
     pub fn new() -> Self {
         Self {
@@ -72,11 +78,11 @@ pub enum EntityType {
     Object,
 }
 
-const TYPE_BITMASK: EntityID           = 0b11 << 62;
-const TYPE_BITMASK_META: EntityID      = 0b00 << 62;
-const TYPE_BITMASK_CHARACTER: EntityID = 0b01 << 62;
-const TYPE_BITMASK_MONSTER: EntityID   = 0b10 << 62;
-const TYPE_BITMASK_OBJECT: EntityID    = 0b11 << 62;
+const TYPE_BITMASK: EntityID           = 0b11 << (usize::BITS - 2);
+const TYPE_BITMASK_META: EntityID      = 0b00 << (usize::BITS - 2);
+const TYPE_BITMASK_CHARACTER: EntityID = 0b01 << (usize::BITS - 2);
+const TYPE_BITMASK_MONSTER: EntityID   = 0b10 << (usize::BITS - 2);
+const TYPE_BITMASK_OBJECT: EntityID    = 0b11 << (usize::BITS - 2);
 
 const FIRST_ID_META: EntityID = TYPE_BITMASK_META;
 const FIRST_ID_CHARACTER: EntityID = TYPE_BITMASK_CHARACTER;
@@ -93,8 +99,32 @@ const DEFAULT_CHARACTER_COMPONENT_COUNT: usize = 1000;
 const DEFAULT_MONSTER_COMPONENT_COUNT: usize = 1000;
 const DEFAULT_OBJECT_COMPONENT_COUNT: usize = 1000;
 
+fn get_entity_type(entity: EntityID) -> EntityType {
+    let masked = entity & TYPE_BITMASK;
+    if masked == TYPE_BITMASK_META {
+        return EntityType::Meta;
+    }
+    if masked == TYPE_BITMASK_CHARACTER {
+        return EntityType::Character;
+    }
+    if masked == TYPE_BITMASK_MONSTER {
+        return EntityType::Monster;
+    }
+    if masked == TYPE_BITMASK_OBJECT {
+        return EntityType::Object;
+    }
+    panic!("Unexpected entity type, please check the type bitmasks are right");
+}
+
+fn wrap<T: 'static + Component>(entry: Option<&mut T>) -> Option<Box<&mut dyn Component>> {
+    if entry.is_none() {
+        return None;
+    }
+    return Some(Box::new(entry.unwrap()));
+}
+
 struct CharacterComponents {
-    next_id: AtomicU64,
+    next_id: AtomicUsize,
     pub character: Vec<Character>,
     pub creature: Vec<Creature>,
     pub map_location: Vec<MapLocation>,
@@ -104,7 +134,7 @@ struct CharacterComponents {
 impl CharacterComponents {
     pub fn new() -> Self {
         Self {
-            next_id: AtomicU64::new(FIRST_ID_CHARACTER),
+            next_id: AtomicUsize::new(FIRST_ID_CHARACTER),
             character: Vec::with_capacity(DEFAULT_CHARACTER_COMPONENT_COUNT),
             creature: Vec::with_capacity(DEFAULT_CHARACTER_COMPONENT_COUNT),
             map_location: Vec::with_capacity(DEFAULT_CHARACTER_COMPONENT_COUNT),
@@ -122,16 +152,36 @@ impl CharacterComponents {
 
         return id;
     }
+
+    pub fn get_component<T: 'static + Component>(&mut self, entity: EntityID) -> Option<Box<&mut dyn Component>> {
+        let the_type = TypeId::of::<T>();
+        if entity as usize >= self.character.len() {
+            return None;
+        }
+        if the_type == TypeId::of::<Character>() {
+            return wrap::<Character>(self.character.get_mut(entity));
+        }
+        if the_type == TypeId::of::<Creature>() {
+            return wrap::<Creature>(self.creature.get_mut(entity));
+        }
+        if the_type == TypeId::of::<MapLocation>() {
+            return wrap::<MapLocation>(self.map_location.get_mut(entity));
+        }
+        if the_type == TypeId::of::<Position>() {
+            return wrap::<Position>(self.position.get_mut(entity));
+        }
+        return None;
+    }
 }
 
 struct MetaComponents {
-    next_id: AtomicU64,
+    next_id: AtomicUsize,
 }
 
 impl MetaComponents {
     pub fn new() -> Self {
         Self {
-            next_id: AtomicU64::new(FIRST_ID_META)
+            next_id: AtomicUsize::new(FIRST_ID_META)
         }
     }
 
@@ -139,10 +189,14 @@ impl MetaComponents {
         let id: EntityID = self.next_id.fetch_add(1, Ordering::Relaxed);
         return id;
     }
+
+    pub fn get_component<T: 'static + Component>(&mut self, entity: EntityID) -> Option<Box<&mut dyn Component>> {
+        return None;
+    }
 }
 
 struct MonsterComponents {
-    next_id: AtomicU64,
+    next_id: AtomicUsize,
     pub creature: Vec<Creature>,
     pub map_location: Vec<MapLocation>,
     pub position: Vec<Position>,
@@ -151,7 +205,7 @@ struct MonsterComponents {
 impl MonsterComponents {
     pub fn new() -> Self {
         Self {
-            next_id: AtomicU64::new(FIRST_ID_MONSTER),
+            next_id: AtomicUsize::new(FIRST_ID_MONSTER),
             creature: Vec::with_capacity(DEFAULT_MONSTER_COMPONENT_COUNT),
             map_location: Vec::with_capacity(DEFAULT_MONSTER_COMPONENT_COUNT),
             position: Vec::with_capacity(DEFAULT_MONSTER_COMPONENT_COUNT),
@@ -167,10 +221,27 @@ impl MonsterComponents {
 
         return id;
     }
+
+    pub fn get_component<T: 'static + Component>(&mut self, entity: EntityID) -> Option<Box<&mut dyn Component>> {
+        let the_type = TypeId::of::<T>();
+        if entity as usize >= self.creature.len() {
+            return None;
+        }
+        if the_type == TypeId::of::<Creature>() {
+            return wrap::<Creature>(self.creature.get_mut(entity));
+        }
+        if the_type == TypeId::of::<MapLocation>() {
+            return wrap::<MapLocation>(self.map_location.get_mut(entity));
+        }
+        if the_type == TypeId::of::<Position>() {
+            return wrap::<Position>(self.position.get_mut(entity));
+        }
+        return None;
+    }
 }
 
 struct ObjectComponents {
-    next_id: AtomicU64,
+    next_id: AtomicUsize,
     pub map_location: Vec<MapLocation>,
     pub position: Vec<Position>,
 }
@@ -178,7 +249,7 @@ struct ObjectComponents {
 impl ObjectComponents {
     pub fn new() -> Self {
         Self {
-            next_id: AtomicU64::new(FIRST_ID_OBJECT),
+            next_id: AtomicUsize::new(FIRST_ID_OBJECT),
             map_location: Vec::with_capacity(DEFAULT_OBJECT_COMPONENT_COUNT),
             position: Vec::with_capacity(DEFAULT_OBJECT_COMPONENT_COUNT),
         }
@@ -191,6 +262,20 @@ impl ObjectComponents {
         self.position.push(Position::new());
 
         return id;
+    }
+
+    pub fn get_component<T: 'static + Component>(&mut self, entity: EntityID) -> Option<Box<&mut dyn Component>> {
+        let the_type = TypeId::of::<T>();
+        if entity as usize >= self.map_location.len() {
+            return None;
+        }
+        if the_type == TypeId::of::<MapLocation>() {
+            return wrap::<MapLocation>(self.map_location.get_mut(entity));
+        }
+        if the_type == TypeId::of::<Position>() {
+            return wrap::<Position>(self.position.get_mut(entity));
+        }
+        return None;
     }
 }
 
@@ -218,5 +303,14 @@ impl Components {
             EntityType::Monster => self.monster_components.create_entity(),
             EntityType::Object => self.object_components.create_entity(),
         }
+    }
+    
+    pub fn get_component<T: 'static + Component>(&mut self, entity: EntityID) -> Option<Box<&mut dyn Component>> {
+        return match get_entity_type(entity) {
+            EntityType::Character => self.character_components.get_component::<T>(entity),
+            EntityType::Meta => self.meta_components.get_component::<T>(entity),
+            EntityType::Monster => self.monster_components.get_component::<T>(entity),
+            EntityType::Object => self.object_components.get_component::<T>(entity),
+        };
     }
 }
