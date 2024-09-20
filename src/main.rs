@@ -1,11 +1,11 @@
 use std::{thread, time::{Duration, Instant}};
 
 use action::ActionRequest;
-use component::Components;
 use game::{Game, GameState};
 use gen::map_gen;
 use map::GameMap;
 use ringbuffer::RingBuffer;
+use tabletop::{Alignment, Class, Race, Size};
 use ui::terminal::terminal_util;
 
 mod action;
@@ -44,17 +44,7 @@ fn main() {
 
     let mut game = Game::new();
 
-    let player_creature_box = game.components.get_component::<component::Creature>(game.special_entities.player);
-
-
-    //TODO(ches) initialize player
-    
-    // player: Entity{
-    //     id: entity::ID_PLAYER,
-    //     race: tabletop::Race::Human,
-    //     pos_x: 5,
-    //     pos_y: 5
-    // },
+    initialize_player(&mut game);
 
     game.current_map = Box::new(GameMap::new(render_state.screen.width, render_state.screen.height));
 
@@ -98,4 +88,28 @@ fn main() {
 
     terminal_util::game_drawing_end();
 
+}
+
+fn initialize_player(game: &mut Game) {
+    let player_creature = game.components.get_creature_mut(game.special_entities.player).unwrap();
+
+    player_creature.alignment = Alignment::NeutralGood;
+    player_creature.race = Race::Human;
+    player_creature.size = Size::Medium;
+    player_creature.stats.charisma = 10;
+    player_creature.stats.constitution = 10;
+    player_creature.stats.dexterity = 10;
+    player_creature.stats.intelligence = 10;
+    player_creature.stats.strength = 10;
+    player_creature.stats.wisdom = 10;
+
+    let character = game.components.get_character_mut(game.special_entities.player).unwrap();
+    character.class = Class::Fighter;
+
+    let map_location = game.components.get_map_index_mut(game.special_entities.player).unwrap();
+    map_location.map = 0;
+
+    let position = game.components.get_position_mut(game.special_entities.player).unwrap();
+    position.x = 5;
+    position.y = 5;
 }

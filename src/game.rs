@@ -2,7 +2,7 @@ use std::collections::VecDeque;
 
 use ringbuffer::AllocRingBuffer;
 
-use crate::{action::ActionRequest, component::{self, Components, EntityType}, entity::EntityID, map::{self, GameMap, TileMap}, material::{self, MaterialMap}, tag::{self, TagMap}};
+use crate::{action::ActionRequest, component::{Components, EntityType}, entity::EntityID, map::{self, GameMap, TileMap}, material::{self, MaterialMap}, tag::{self, TagMap}};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum GameState {

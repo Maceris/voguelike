@@ -150,6 +150,7 @@ fn generate_frame(render_state: &mut RenderState, game: &Game) {
             }
         }
 
+        
         //TODO(ches) Draw entities
     }
 

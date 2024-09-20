@@ -252,7 +252,6 @@ macro_rules! stub_actor {
     }
 }
 
-
 pub fn execute_action(game: &mut Game, action_request: ActionRequest) {
     
     let action = action_request.action;

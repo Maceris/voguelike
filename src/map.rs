@@ -86,13 +86,6 @@ impl GameMap {
     }
 }
 
-pub trait Location {
-    fn get_x(&self) -> u16;
-    fn get_y(&self) -> u16;
-    fn set_x(&mut self, x: u16);
-    fn set_y(&mut self, y: u16);
-}
-
 pub type TileMap = EnumMap<Tile, TileInfo>;
 
 macro_rules! draw_info {
