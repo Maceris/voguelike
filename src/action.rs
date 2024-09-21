@@ -1,6 +1,6 @@
 use traits::create_action;
 
-use crate::{entity::EntityID, game::{Game, GameState}};
+use crate::{component::Position, entity::EntityID, game::{Game, GameState}};
 
 create_action!(ExitMenu);
 create_action!(Quit);
@@ -172,32 +172,16 @@ macro_rules! new_action {
     };
 }
 
-pub trait Actionable {
-    fn before() -> bool;
-    fn during(game: &mut Game, noun: Noun, second: Noun) -> bool;
-    fn after() -> bool;
+pub trait ActionRoutine {
+    fn execute(game: &mut Game, actor: EntityID, noun: Noun, second: Noun) -> bool;
 }
 
-macro_rules! stub_before {
-    () => {
-        fn before() -> bool {
-            return false;
-        }
-    };
-}
-
-macro_rules! stub_during {
-    () => {
-        fn during(_game: &mut Game, _noun: Noun, _second: Noun) -> bool {
-            return false;
-        }
-    };
-}
-
-macro_rules! stub_after {
-    () => {
-        fn after() -> bool {
-            return false;
+macro_rules! stub_action {
+    ($class:ident) => {
+        impl ActionRoutine for $class {
+            fn execute(_game: &mut Game, _actor: EntityID, _noun: Noun, _second: Noun) -> bool {
+                return false;
+            }
         }
     };
 }
@@ -227,33 +211,20 @@ pub fn is_meta(action: Action) -> bool {
     };
 }
 
-pub trait Actor {
-    fn before(&self, action: Action) -> bool;
-    fn after(&self, action: Action) -> bool;
-    fn react_before(&self, action: Action) -> bool;
-    fn react_after(&self, action: Action) -> bool;
+pub enum RuleType {
+    After,
+    Before,
+    Life,
+    Order,
+    ReactAfter,
+    ReactBefore,
 }
 
-#[macro_export]
-macro_rules! stub_actor {
-    () => {
-        fn before(&self, _action: Action) -> bool {
-            return false;
-        }
-        fn after(&self, _action: Action) -> bool {
-            return false;
-        }
-        fn react_before(&self, _action: Action) -> bool {
-            return false;
-        }
-        fn react_after(&self, _action: Action) -> bool {
-            return false;
-        }
-    }
-}
+pub type Rule = fn(RuleType, Action) -> bool;
 
 pub fn execute_action(game: &mut Game, action_request: ActionRequest) {
     
+    let actor:EntityID = action_request.actor;
     let action = action_request.action;
     let noun: Noun = action_request.noun;
     let second: Noun = action_request.second;
@@ -263,9 +234,84 @@ pub fn execute_action(game: &mut Game, action_request: ActionRequest) {
     }
 
     let during_result: bool = match action {
-        Action::Quit(Quit) => Quit::during(game, noun, second),
-        Action::Examine(Examine) => Examine::during(game, noun, second),
-        _ => false,
+        Action::ExitMenu(ExitMenu) => ExitMenu::execute(game, actor, noun, second),
+        Action::Quit(Quit) => Quit::execute(game, actor, noun, second),
+        Action::Restart(Restart) => Restart::execute(game, actor, noun, second),
+        Action::Restore(Restore) => Restore::execute(game, actor, noun, second),
+        Action::Save(Save) => Save::execute(game, actor, noun, second),
+
+        Action::Answer(Answer) => Answer::execute(game, actor, noun, second),
+        Action::Ask(Ask) => Ask::execute(game, actor, noun, second),
+        Action::AskFor(AskFor) => AskFor::execute(game, actor, noun, second),
+        Action::Attack(Attack) => Attack::execute(game, actor, noun, second),
+        Action::Blow(Blow) => Blow::execute(game, actor, noun, second),
+        Action::Burn(Burn) => Burn::execute(game, actor, noun, second),
+        Action::Buy(Buy) => Buy::execute(game, actor, noun, second),
+        Action::Clean(Clean) => Clean::execute(game, actor, noun, second),
+        Action::Climb(Climb) => Climb::execute(game, actor, noun, second),
+        Action::Close(Close) => Close::execute(game, actor, noun, second),
+        Action::Consult(Consult) => Consult::execute(game, actor, noun, second),
+        Action::Crush(Crush) => Crush::execute(game, actor, noun, second),
+        Action::Cut(Cut) => Cut::execute(game, actor, noun, second),
+        Action::Dig(Dig) => Dig::execute(game, actor, noun, second),
+        Action::Disrobe(Disrobe) => Disrobe::execute(game, actor, noun, second),
+        Action::Drink(Drink) => Drink::execute(game, actor, noun, second),
+        Action::Drop(Drop) => Drop::execute(game, actor, noun, second),
+        Action::Eat(Eat) => Eat::execute(game, actor, noun, second),
+        Action::Empty(Empty) => Empty::execute(game, actor, noun, second),
+        Action::Enter(Enter) => Enter::execute(game, actor, noun, second),
+        Action::Examine(Examine) => Examine::execute(game, actor, noun, second),
+        Action::Exit(Exit) => Exit::execute(game, actor, noun, second),
+        Action::Fill(Fill) => Fill::execute(game, actor, noun, second),
+        Action::GetOff(GetOff) => GetOff::execute(game, actor, noun, second),
+        Action::Give(Give) => Give::execute(game, actor, noun, second),
+        Action::Go(Go) => Go::execute(game, actor, noun, second),
+        Action::Insert(Insert) => Insert::execute(game, actor, noun, second),
+        Action::Inventory(Inventory) => Inventory::execute(game, actor, noun, second),
+        Action::Jump(Jump) => Jump::execute(game, actor, noun, second),
+        Action::JumpOver(JumpOver) => JumpOver::execute(game, actor, noun, second),
+        Action::Kiss(Kiss) => Kiss::execute(game, actor, noun, second),
+        Action::Listen(Listen) => Listen::execute(game, actor, noun, second),
+        Action::LetGo(LetGo) => LetGo::execute(game, actor, noun, second),
+        Action::Lock(Lock) => Lock::execute(game, actor, noun, second),
+        Action::Look(Look) => Look::execute(game, actor, noun, second),
+        Action::LookUnder(LookUnder) => LookUnder::execute(game, actor, noun, second),
+        Action::Open(Open) => Open::execute(game, actor, noun, second),
+        Action::Order(Order) => Order::execute(game, actor, noun, second),
+        Action::Pray(Pray) => Pray::execute(game, actor, noun, second),
+        Action::Pull(Pull) => Pull::execute(game, actor, noun, second),
+        Action::Push(Push) => Push::execute(game, actor, noun, second),
+        Action::PushDir(PushDir) => PushDir::execute(game, actor, noun, second),
+        Action::PutOn(PutOn) => PutOn::execute(game, actor, noun, second),
+        Action::Receive(Receive) => Receive::execute(game, actor, noun, second),
+        Action::Remove(Remove) => Remove::execute(game, actor, noun, second),
+        Action::Search(Search) => Search::execute(game, actor, noun, second),
+        Action::Set(Set) => Set::execute(game, actor, noun, second),
+        Action::SetTo(SetTo) => SetTo::execute(game, actor, noun, second),
+        Action::Show(Show) => Show::execute(game, actor, noun, second),
+        Action::Sing(Sing) => Sing::execute(game, actor, noun, second),
+        Action::Sleep(Sleep) => Sleep::execute(game, actor, noun, second),
+        Action::Smell(Smell) => Smell::execute(game, actor, noun, second),
+        Action::Swim(Swim) => Swim::execute(game, actor, noun, second),
+        Action::Swing(Swing) => Swing::execute(game, actor, noun, second),
+        Action::SwitchOff(SwitchOff) => SwitchOff::execute(game, actor, noun, second),
+        Action::SwitchOn(SwitchOn) => SwitchOn::execute(game, actor, noun, second),
+        Action::Take(Take) => Take::execute(game, actor, noun, second),
+        Action::Taste(Taste) => Taste::execute(game, actor, noun, second),
+        Action::Tell(Tell) => Tell::execute(game, actor, noun, second),
+        Action::Think(Think) => Think::execute(game, actor, noun, second),
+        Action::ThrowAt(ThrowAt) => ThrowAt::execute(game, actor, noun, second),
+        Action::ThrownAt(ThrownAt) => ThrownAt::execute(game, actor, noun, second),
+        Action::Tie(Tie) => Tie::execute(game, actor, noun, second),
+        Action::Touch(Touch) => Touch::execute(game, actor, noun, second),
+        Action::Turn(Turn) => Turn::execute(game, actor, noun, second),
+        Action::Unlock(Unlock) => Unlock::execute(game, actor, noun, second),
+        Action::Wait(Wait) => Wait::execute(game, actor, noun, second),
+        Action::Wake(Wake) => Wake::execute(game, actor, noun, second),
+        Action::WakeOther(WakeOther) => WakeOther::execute(game, actor, noun, second),
+        Action::Wave(Wave) => Wave::execute(game, actor, noun, second),
+        Action::WaveHands(WaveHands) => WaveHands::execute(game, actor, noun, second),
+        Action::Wear(Wear) => Wear::execute(game, actor, noun, second),
     };
 
     //TODO(ches) react_before of things in vicinity
@@ -283,17 +329,150 @@ pub fn execute_action(game: &mut Game, action_request: ActionRequest) {
     //TODO(ches) react_after of room
 }
 
-impl Actionable for Quit {
-    stub_before!();
-    fn during(game: &mut Game, _noun: Noun, _second: Noun) -> bool {
+
+stub_action!(ExitMenu);
+impl ActionRoutine for Quit {
+    fn execute(game: &mut Game, _actor: EntityID, _noun: Noun, _second: Noun) -> bool {
         game.state = GameState::QuitRequested;
         return false;
     }
-    stub_after!();
 }
+stub_action!(Restart);
+stub_action!(Restore);
+stub_action!(Save);
 
-impl Actionable for Examine {
-    stub_before!();
-    stub_during!();
-    stub_after!();
+stub_action!(Answer);
+stub_action!(Ask);
+stub_action!(AskFor);
+stub_action!(Attack);
+stub_action!(Blow);
+stub_action!(Burn);
+stub_action!(Buy);
+stub_action!(Clean);
+stub_action!(Climb);
+stub_action!(Close);
+stub_action!(Consult);
+stub_action!(Crush);
+stub_action!(Cut);
+stub_action!(Dig);
+stub_action!(Disrobe);
+stub_action!(Drink);
+stub_action!(Drop);
+stub_action!(Eat);
+stub_action!(Empty);
+stub_action!(Enter);
+stub_action!(Examine);
+stub_action!(Exit);
+stub_action!(Fill);
+stub_action!(GetOff);
+stub_action!(Give);
+impl ActionRoutine for Go {
+    fn execute(game: &mut Game, actor: EntityID, noun: Noun, _second: Noun) -> bool {
+        
+        let maybe_direction: Option<EntityID> = match noun {
+            Noun::Entity(id) => Some(id),
+            Noun::Literal(_) => None,
+            Noun::Nothing => None,
+            Noun::Number(_) => None,
+        };
+        if maybe_direction.is_none() {
+            //TODO(ches) report an error somehow
+            return true;
+        }
+
+        let maybe_position = game.components.get_position_mut(actor);
+        if maybe_position.is_none() {
+            //TODO(ches) report an error somehow
+            return true;
+        }
+        
+        let direction = maybe_direction.unwrap();
+
+        let mut offset_x: i16 = 0;
+        let mut offset_y: i16 = 0;
+
+        if direction == game.special_entities.north {
+            offset_y = -1;
+        }
+        else if direction == game.special_entities.east {
+            offset_x = 1;
+        }
+        else if direction == game.special_entities.south {
+            offset_y = 1;
+        }
+        else if direction == game.special_entities.west {
+            offset_x = -1;
+        }
+        else if direction == game.special_entities.north_east {
+            offset_y = -1;
+            offset_x = 1;
+        }
+        else if direction == game.special_entities.north_west {
+            offset_y = -1;
+            offset_x = -1;
+        }
+        else if direction == game.special_entities.south_east {
+            offset_y = 1;
+            offset_x = 1;
+        }
+        else if direction == game.special_entities.south_west {
+            offset_y = 1;
+            offset_x = -1;
+        }
+        else {
+            //TODO(ches) report an error somehow
+        }
+
+        let position: &mut Position = maybe_position.unwrap();
+        position.x = (position.x as i16 + offset_x) as u16;
+        position.y = (position.y as i16 + offset_y) as u16;
+
+        return false;
+    }
 }
+stub_action!(Insert);
+stub_action!(Inventory);
+stub_action!(Jump);
+stub_action!(JumpOver);
+stub_action!(Kiss);
+stub_action!(Listen);
+stub_action!(LetGo);
+stub_action!(Lock);
+stub_action!(Look);
+stub_action!(LookUnder);
+stub_action!(Open);
+stub_action!(Order);
+stub_action!(Pray);
+stub_action!(Pull);
+stub_action!(Push);
+stub_action!(PushDir);
+stub_action!(PutOn);
+stub_action!(Receive);
+stub_action!(Remove);
+stub_action!(Search);
+stub_action!(Set);
+stub_action!(SetTo);
+stub_action!(Show);
+stub_action!(Sing);
+stub_action!(Sleep);
+stub_action!(Smell);
+stub_action!(Swim);
+stub_action!(Swing);
+stub_action!(SwitchOff);
+stub_action!(SwitchOn);
+stub_action!(Take);
+stub_action!(Taste);
+stub_action!(Tell);
+stub_action!(Think);
+stub_action!(ThrowAt);
+stub_action!(ThrownAt);
+stub_action!(Tie);
+stub_action!(Touch);
+stub_action!(Turn);
+stub_action!(Unlock);
+stub_action!(Wait);
+stub_action!(Wake);
+stub_action!(WakeOther);
+stub_action!(Wave);
+stub_action!(WaveHands);
+stub_action!(Wear);
