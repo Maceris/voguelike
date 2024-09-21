@@ -424,8 +424,12 @@ impl ActionRoutine for Go {
         }
 
         let position: &mut Position = maybe_position.unwrap();
-        position.x = (position.x as i16 + offset_x) as u16;
-        position.y = (position.y as i16 + offset_y) as u16;
+        if position.x > 0 && offset_x < 0 || position.x < game.current_map.width - 1 && offset_x > 0 {
+            position.x = (position.x as i16 + offset_x) as u16;
+        }
+        if position.y > 0 && offset_y < 0 || position.y < game.current_map.height - 1 && offset_y > 0 {
+            position.y = (position.y as i16 + offset_y) as u16;
+        }
 
         return false;
     }
