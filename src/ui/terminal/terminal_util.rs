@@ -143,10 +143,9 @@ fn generate_frame(render_state: &mut RenderState, game: &Game) {
     if game.state == GameState::Running {
         for y in 0..render_state.screen.height {
             for x in 0..render_state.screen.width {
-                let tile: Tile = game.current_map.as_ref().get(x, y);
-                let draw_info: &DrawInfo = &game.data_tables.tile_map[tile].draw_info;
-                render_state.current_frame.set_color(x, y, draw_info.color);
-                render_state.current_frame.set_icon(x, y, draw_info.icon);
+                let tile: &Tile = game.current_map.as_ref().get(x, y);
+                render_state.current_frame.set_color(x, y, icons::tile_color(tile));
+                render_state.current_frame.set_icon(x, y, icons::tile_icon(tile));
             }
         }
 

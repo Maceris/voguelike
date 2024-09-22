@@ -44,6 +44,7 @@ create_action!(LetGo);
 create_action!(Lock);
 create_action!(Look);
 create_action!(LookUnder);
+create_action!(NotUnderstood);
 create_action!(Open);
 create_action!(Order);
 create_action!(Pray);
@@ -127,6 +128,7 @@ pub enum Action {
     Lock(Lock),
     Look(Look),
     LookUnder(LookUnder),
+    NotUnderstood(NotUnderstood),
     Open(Open),
     Order(Order),
     Pray(Pray),
@@ -276,6 +278,7 @@ pub fn execute_action(game: &mut Game, action_request: ActionRequest) {
         Action::Lock(Lock) => Lock::execute(game, actor, noun, second),
         Action::Look(Look) => Look::execute(game, actor, noun, second),
         Action::LookUnder(LookUnder) => LookUnder::execute(game, actor, noun, second),
+        Action::NotUnderstood(NotUnderstood) => NotUnderstood::execute(game, actor, noun, second),
         Action::Open(Open) => Open::execute(game, actor, noun, second),
         Action::Order(Order) => Order::execute(game, actor, noun, second),
         Action::Pray(Pray) => Pray::execute(game, actor, noun, second),
@@ -444,6 +447,7 @@ stub_action!(LetGo);
 stub_action!(Lock);
 stub_action!(Look);
 stub_action!(LookUnder);
+stub_action!(NotUnderstood);
 stub_action!(Open);
 stub_action!(Order);
 stub_action!(Pray);
