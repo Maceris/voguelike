@@ -18,6 +18,7 @@ mod map;
 mod material;
 mod tabletop;
 mod tag;
+mod time;
 mod ui;
 
 const FRAMES_PER_SECOND: u8 = 30;
