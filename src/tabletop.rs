@@ -52,6 +52,36 @@ pub enum Size {
     Gargantuan
 }
 
+pub enum Skill {
+    Acrobatics,
+    AnimalHandling,
+    Arcana,
+    Athletics,
+    Deception,
+    History,
+    Insight,
+    Intimidation,
+    Investigation,
+    Medicine,
+    Nature,
+    Perception,
+    Performance,
+    Persuasion,
+    Religion,
+    SleightOfHand,
+    Stealth,
+    Survival
+}
+
+pub enum Stat {
+    Charisma,
+    Constitution,
+    Dexterity,
+    Intelligence,
+    Strength,
+    Wisdom,
+}
+
 pub struct Stats {
     pub charisma: u8,
     pub constitution: u8,
@@ -101,6 +131,29 @@ pub fn move_capacity(strength: u8, size: Size) -> u16 {
         Size::Huge => total * 8,
         Size::Gargantuan => total * 16
     }
+}
+
+pub fn skill_stat(skill: Skill) -> Stat {
+    return match skill {
+        Skill::Acrobatics => Stat::Dexterity,
+        Skill::AnimalHandling => Stat::Wisdom,
+        Skill::Arcana => Stat::Intelligence,
+        Skill::Athletics => Stat::Strength,
+        Skill::Deception => Stat::Charisma,
+        Skill::History => Stat::Intelligence,
+        Skill::Insight => Stat::Wisdom,
+        Skill::Intimidation => Stat::Charisma,
+        Skill::Investigation => Stat::Intelligence,
+        Skill::Medicine => Stat::Wisdom,
+        Skill::Nature => Stat::Intelligence,
+        Skill::Perception => Stat::Wisdom,
+        Skill::Performance => Stat::Charisma,
+        Skill::Persuasion => Stat::Charisma,
+        Skill::Religion => Stat::Intelligence,
+        Skill::SleightOfHand => Stat::Dexterity,
+        Skill::Stealth => Stat::Dexterity,
+        Skill::Survival => Stat::Wisdom,
+    };
 }
 
 #[cfg(test)]
