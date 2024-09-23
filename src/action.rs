@@ -2,6 +2,7 @@ use traits::create_action;
 
 use crate::{component::Position, entity::EntityID, game::{Game, GameState}};
 
+create_action!(NewGame);
 create_action!(Quit);
 create_action!(Restart);
 create_action!(Restore);
@@ -84,6 +85,7 @@ create_action!(Wear);
 #[derive(Clone, Copy, Debug)]
 pub enum Action {
     // Meta actions
+    NewGame(NewGame),
     Quit(Quit),
     Restart(Restart),
     Restore(Restore),
@@ -202,6 +204,7 @@ pub struct ActionRequest {
 
 pub fn is_meta(action: Action) -> bool {
     return match action {
+        Action::NewGame(_) => true,
         Action::Quit(_) => true,
         Action::Restart(_) => true,
         Action::Restore(_) => true,
@@ -233,6 +236,7 @@ pub fn execute_action(game: &mut Game, action_request: ActionRequest) {
     }
 
     let during_result: bool = match action {
+        Action::NewGame(NewGame) => NewGame::execute(game, actor, noun, second),
         Action::Quit(Quit) => Quit::execute(game, actor, noun, second),
         Action::Restart(Restart) => Restart::execute(game, actor, noun, second),
         Action::Restore(Restore) => Restore::execute(game, actor, noun, second),
@@ -328,6 +332,13 @@ pub fn execute_action(game: &mut Game, action_request: ActionRequest) {
     //TODO(ches) react_after of room
 }
 
+
+impl ActionRoutine for NewGame {
+    fn execute(game: &mut Game, _actor: EntityID, _noun: Noun, _second: Noun) -> bool {
+        game.state = GameState::Running;
+        return false;
+    }
+}
 impl ActionRoutine for Quit {
     fn execute(game: &mut Game, _actor: EntityID, _noun: Noun, _second: Noun) -> bool {
         game.state = GameState::QuitRequested;

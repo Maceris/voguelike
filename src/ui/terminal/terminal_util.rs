@@ -4,7 +4,7 @@ use std::{char::from_digit, error::Error, fmt, io::{self, Write}, time::Duration
 
 use crossterm::style;
 
-use crate::{action::ActionRequest, component::Position, game::{DebugInfo, Game, GameState}, map::Tile, tabletop::Race, FRAMES_PER_SECOND};
+use crate::{action::ActionRequest, component::Position, game::{DebugInfo, Game, GameState}, map::Tile, tabletop::Race, ui::menu::MenuType, FRAMES_PER_SECOND};
 
 use super::{icons, key_mapping};
 
@@ -140,65 +140,83 @@ fn get_average_fps(debug_info: &DebugInfo) -> u32 {
 }
 
 fn generate_frame(render_state: &mut RenderState, game: &Game) {
-    if game.state == GameState::Running {
-        for y in 0..render_state.screen.height {
-            for x in 0..render_state.screen.width {
-                let tile: &Tile = game.current_map.as_ref().get(x, y);
-                render_state.current_frame.set_color(x, y, icons::tile_color(tile));
-                render_state.current_frame.set_icon(x, y, icons::tile_icon(tile));
-            }
+    match game.state {
+        GameState::Menu(MenuType::Character) => (),
+        GameState::Menu(MenuType::Main) => draw_main_menu(render_state, game),
+        GameState::Menu(MenuType::Pause) => (),
+        GameState::Paused => (),
+        GameState::Running => draw_ingame(render_state, game),
+        GameState::QuitRequested => (),
+    };
+
+    draw_fps_counter(render_state, game);
+}
+
+fn draw_ingame(render_state: &mut RenderState, game: &Game) {
+    for y in 0..render_state.screen.height {
+        for x in 0..render_state.screen.width {
+            let tile: &Tile = game.current_map.as_ref().get(x, y);
+            render_state.current_frame.set_color(x, y, icons::tile_color(tile));
+            render_state.current_frame.set_icon(x, y, icons::tile_icon(tile));
         }
-
-        let characters = game.components.get_character_components();
-        let monsters = game.components.get_monster_components();
-        let objects = game.components.get_object_components();
-
-        for i in 0..characters.get_size() {
-            if !characters.alive[i].alive || characters.map_index[i].map != game.current_map.id {
-                continue;
-            }
-            let pos: &Position = &characters.position[i];
-            let race: &Race = &characters.creature[i].race;
-
-            render_state.current_frame.set_color(pos.x, pos.y, icons::creature_color(race));
-            render_state.current_frame.set_icon(pos.x, pos.y,  icons::creature_icon(race));
-        }
-
-        for i in 0..monsters.get_size() {
-            if !monsters.alive[i].alive || monsters.map_index[i].map != game.current_map.id {
-                continue;
-            }
-            let pos: &Position = &monsters.position[i];
-            let race: &Race = &characters.creature[i].race;
-
-            render_state.current_frame.set_color(pos.x, pos.y, icons::creature_color(race));
-            render_state.current_frame.set_icon(pos.x, pos.y,  icons::creature_icon(race));
-        }
-
-        //TODO(ches) Draw objects
     }
 
-    let fps: u32 = u32::max(1, get_average_fps(&game.debug_info));
-    let fps_digits: u32 = fps.ilog10() + 1;
+    let characters = game.components.get_character_components();
+    let monsters = game.components.get_monster_components();
+    let objects = game.components.get_object_components();
+
+    for i in 0..characters.get_size() {
+        if !characters.alive[i].alive || characters.map_index[i].map != game.current_map.id {
+            continue;
+        }
+        let pos: &Position = &characters.position[i];
+        let race: &Race = &characters.creature[i].race;
+
+        render_state.current_frame.set_color(pos.x, pos.y, icons::creature_color(race));
+        render_state.current_frame.set_icon(pos.x, pos.y,  icons::creature_icon(race));
+    }
+
+    for i in 0..monsters.get_size() {
+        if !monsters.alive[i].alive || monsters.map_index[i].map != game.current_map.id {
+            continue;
+        }
+        let pos: &Position = &monsters.position[i];
+        let race: &Race = &characters.creature[i].race;
+
+        render_state.current_frame.set_color(pos.x, pos.y, icons::creature_color(race));
+        render_state.current_frame.set_icon(pos.x, pos.y,  icons::creature_icon(race));
+    }
+    //TODO(ches) Draw objects
+}
+
+fn draw_main_menu(render_state: &mut RenderState, _game: &Game) {
+
+    draw_text(render_state, "P", Color::Yellow, 3, 1);
+    draw_text(render_state, "Play game", Color::White, 5, 1);
+
     
+    draw_text(render_state, "Q", Color::Yellow, 3, 3);
+    draw_text(render_state, "Quit", Color::White, 5, 3);
+}
+
+fn draw_fps_counter(render_state: &mut RenderState, game: &Game) {
+    let fps: u32 = u32::max(1, get_average_fps(&game.debug_info));
+
+    let text = format!("{}", fps);
     let color: Color = if fps < FRAMES_PER_SECOND as u32 {
         Color::Red
     } else {
         Color::Green
     };
 
-    for i in 0..fps_digits {
-        let digit = if i < fps_digits - 1 {
-            const BASE: u32 = 10;
-            (fps / (BASE.pow(fps_digits - (i + 1)))) % 10
-        } else {
-            fps % 10
-        };
-        
-        render_state.current_frame.set_color(i as u16, 0, color);
-        render_state.current_frame.set_icon(i as u16, 0, from_digit(digit, 10).unwrap());
+    draw_text(render_state, text.as_str(), color, 0, 0);
+}
+
+fn draw_text(render_state: &mut RenderState, text: &str, color: Color, x: u16, y: u16) {
+    for (position, character) in text.char_indices() {
+        render_state.current_frame.set_color(position as u16 + x, y, color);
+        render_state.current_frame.set_icon(position as u16 + x, y, character);
     }
-    //TODO(ches) headers, footers, menus, etc
 }
 
 pub fn create_render_state(terminal: Terminal) -> Result<RenderState, TerminalError> {

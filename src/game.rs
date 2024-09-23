@@ -2,14 +2,14 @@ use std::collections::VecDeque;
 
 use ringbuffer::AllocRingBuffer;
 
-use crate::{action::ActionRequest, component::{Components, EntityType}, entity::EntityID, map::GameMap, material::{self, MaterialMap}, tag::{self, TagMap}};
+use crate::{action::ActionRequest, component::{Components, EntityType}, entity::EntityID, map::GameMap, material::{self, MaterialMap}, tag::{self, TagMap}, ui::menu::{self, MenuType}};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum GameState {
-    Menu,
+    Menu(menu::MenuType),
     Paused,
     Running,
-    QuitRequested
+    QuitRequested,
 }
 
 pub struct DebugInfo {
@@ -81,7 +81,7 @@ impl Game {
             },
             debug_info: DebugInfo{fps_history: AllocRingBuffer::new(100)},
             special_entities: SpecialEntities::new(),
-            state: GameState::Menu,
+            state: GameState::Menu(MenuType::Main),
         };
         set_up_special_entities(&mut result.special_entities, &mut result.components);
         return result;

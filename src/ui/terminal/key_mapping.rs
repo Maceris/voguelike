@@ -1,18 +1,45 @@
 use crossterm::event::{KeyCode, KeyEvent};
 
-use crate::{action::{Action, ActionRequest, Go, Noun, Quit}, entity::EntityID, game::{Game, GameState}, new_action};
+use crate::{action::{Action, ActionRequest, Go, NewGame, Noun, Quit}, entity::EntityID, game::{Game, GameState}, new_action, ui::menu::MenuType};
 
 pub fn map_input(event: KeyEvent, game: &Game) -> Option<ActionRequest> {
     return match game.state {
-        GameState::Menu=> map_input_menu(event, game),
+        GameState::Menu(menu)=> map_input_menu(menu, event, game),
         GameState::Paused=> map_input_paused(event, game),
         GameState::Running=> map_input_ingame(event, game),
         GameState::QuitRequested => None
     };
 }
 
-fn map_input_menu(event: KeyEvent, game: &Game) -> Option<ActionRequest> {
+fn map_input_menu(menu: MenuType, event: KeyEvent, game: &Game) -> Option<ActionRequest> {
     if event.code == KeyCode::Esc {
+        let request = ActionRequest {
+            actor: game.special_entities.player,
+            action: new_action!(Quit),
+            noun: Noun::Nothing,
+            second: Noun::Nothing
+        };
+        return Some(request);
+    }
+
+    return match menu {
+        MenuType::Character => None,
+        MenuType::Main => map_input_main_menu(event, game),
+        MenuType::Pause => None,
+    };
+}
+
+fn map_input_main_menu(event: KeyEvent, game: &Game) -> Option<ActionRequest> {
+    if event.code == KeyCode::Char('p') || event.code == KeyCode::Char('P') {
+        let request = ActionRequest {
+            actor: game.special_entities.player,
+            action: new_action!(NewGame),
+            noun: Noun::Nothing,
+            second: Noun::Nothing
+        };
+        return Some(request);
+    }
+    if event.code == KeyCode::Char('q') || event.code == KeyCode::Char('Q') {
         let request = ActionRequest {
             actor: game.special_entities.player,
             action: new_action!(Quit),

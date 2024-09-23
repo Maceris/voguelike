@@ -1,5 +1,9 @@
-pub trait DrawMenu {
-    fn draw_menu();
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum MenuType {
+    Character,
+    Main,
+    Pause,
 }
 
 pub struct TabMenu {

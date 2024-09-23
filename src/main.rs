@@ -6,7 +6,7 @@ use gen::map_gen;
 use map::GameMap;
 use ringbuffer::RingBuffer;
 use tabletop::{Alignment, Class, Race, Size};
-use ui::terminal::terminal_util;
+use ui::{menu::MenuType, terminal::terminal_util};
 
 mod action;
 mod component;
@@ -53,7 +53,7 @@ fn main() {
 
     const FRAME_DURATION: Duration = Duration::from_nanos(NANOS_PER_FRAME as u64);
 
-    game.state = GameState::Running;
+    game.state = GameState::Menu(MenuType::Main);
 
     let mut frame_start = Instant::now();
     let mut first_frame: bool = true;
