@@ -67,11 +67,6 @@ impl GameMap {
         return &self.tiles[index];
     }
 
-    pub fn get_mut(&mut self, x: u16, y: u16) -> &mut Tile {
-        let index: usize = (y * self.width + x).into();
-        return &mut self.tiles[index];
-    }
-
     pub fn set(&mut self, x: u16, y: u16, tile: Tile) {
         let index: usize = (y * self.width + x).into();
         self.tiles[index] = tile;

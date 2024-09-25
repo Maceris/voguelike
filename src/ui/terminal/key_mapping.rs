@@ -25,6 +25,7 @@ fn map_input_menu(menu: MenuType, event: KeyEvent, game: &Game) -> Option<Action
     return match menu {
         MenuType::Character => None,
         MenuType::Main => map_input_main_menu(event, game),
+        MenuType::NewCharacter => None,
         MenuType::Pause => None,
     };
 }
@@ -51,7 +52,7 @@ fn map_input_main_menu(event: KeyEvent, game: &Game) -> Option<ActionRequest> {
     return None;
 }
 
-fn map_input_paused(event: KeyEvent, game: &Game) -> Option<ActionRequest> {
+fn map_input_paused(_event: KeyEvent, _game: &Game) -> Option<ActionRequest> {
     return None;
 }
 

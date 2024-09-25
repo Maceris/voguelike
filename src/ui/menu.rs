@@ -3,6 +3,7 @@
 pub enum MenuType {
     Character,
     Main,
+    NewCharacter,
     Pause,
 }
 
@@ -13,7 +14,7 @@ pub struct TabMenu {
 
 pub struct Table {
     pub headers: Vec<String>,
-    pub rows: Vec<TableRow>, 
+    pub rows: Vec<TableRow>,
 }
 
 pub struct TableRow {

@@ -1,6 +1,6 @@
 use crossterm::{cursor, event::{poll, read, Event, KeyEvent}, execute, queue, style::Color, terminal};
 use ringbuffer::RingBuffer;
-use std::{char::from_digit, error::Error, fmt, io::{self, Write}, time::Duration};
+use std::{error::Error, fmt, io::{self, Write}, time::Duration};
 
 use crossterm::style;
 
@@ -54,11 +54,6 @@ pub struct Screen {
 pub struct DrawInfo {
     pub color: style::Color,
     pub icon: char
-}
-
-pub trait Drawable {
-    fn get_color(&self) -> style::Color;
-    fn get_icon(&self) -> char;
 }
 
 struct ScreenBuffer {
@@ -141,9 +136,7 @@ fn get_average_fps(debug_info: &DebugInfo) -> u32 {
 
 fn generate_frame(render_state: &mut RenderState, game: &Game) {
     match game.state {
-        GameState::Menu(MenuType::Character) => (),
-        GameState::Menu(MenuType::Main) => draw_main_menu(render_state, game),
-        GameState::Menu(MenuType::Pause) => (),
+        GameState::Menu(menu_type) => draw_menu(menu_type, render_state, game),
         GameState::Paused => (),
         GameState::Running => draw_ingame(render_state, game),
         GameState::QuitRequested => (),
@@ -189,11 +182,19 @@ fn draw_ingame(render_state: &mut RenderState, game: &Game) {
     //TODO(ches) Draw objects
 }
 
+fn draw_menu(menu_type: MenuType, render_state: &mut RenderState, game: &Game) {
+    match menu_type {
+        MenuType::Character => (),
+        MenuType::Main => draw_main_menu(render_state, game),
+        MenuType::NewCharacter => (),
+        MenuType::Pause => (),
+    };
+}
+
 fn draw_main_menu(render_state: &mut RenderState, _game: &Game) {
 
     draw_text(render_state, "P", Color::Yellow, 3, 1);
     draw_text(render_state, "Play game", Color::White, 5, 1);
-
     
     draw_text(render_state, "Q", Color::Yellow, 3, 3);
     draw_text(render_state, "Quit", Color::White, 5, 3);
