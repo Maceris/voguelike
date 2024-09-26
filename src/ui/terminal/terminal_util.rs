@@ -11,6 +11,9 @@ use super::{icons, key_mapping};
 pub const MIN_WIDTH: u16 = 80;
 pub const MIN_HEIGHT: u16 = 24;
 
+const DEFAULT_BACKGROUND: Color = Color::Black;
+const DEFAULT_FOREGROUND: Color= Color::White;
+
 macro_rules! panic_on_error {
     ($expression:expr) => {
         if $expression.is_err() {
@@ -52,6 +55,7 @@ pub struct Screen {
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Ord, PartialOrd, Hash)]
 pub struct DrawInfo {
+    pub background: style::Color,
     pub color: style::Color,
     pub icon: char
 }
@@ -69,7 +73,7 @@ impl ScreenBuffer {
         };
 
         for _ in 0..width*height {
-            result.tiles.push(DrawInfo{color: Color::Black, icon: ' '});
+            result.tiles.push(DrawInfo{background: DEFAULT_BACKGROUND, color: DEFAULT_FOREGROUND, icon: ' '});
         }
 
         return result;
@@ -78,6 +82,11 @@ impl ScreenBuffer {
     fn set_by_index(&mut self, index: usize, tile: &DrawInfo) {
         self.tiles[index].color = tile.color;
         self.tiles[index].icon = tile.icon;
+    }
+
+    pub fn set_background(&mut self, x: u16, y: u16, background: Color) {
+        let index: usize = (y * self.width + x).into();
+        self.tiles[index].background = background;
     }
 
     pub fn set_color(&mut self, x: u16, y: u16, color: Color) {
@@ -116,33 +125,22 @@ impl RenderState {
     }
 }
 
+fn clear_frame(render_state: &mut RenderState) {
+    for y in 0..render_state.screen.height {
+        for x in 0..render_state.screen.width {
+            render_state.current_frame.set_background(x, y, DEFAULT_BACKGROUND);
+            render_state.current_frame.set_color(x, y, DEFAULT_FOREGROUND);
+            render_state.current_frame.set_icon(x, y, ' ');
+        }
+    }
+}
+
 fn diff(old: &ScreenBuffer, new: &ScreenBuffer, diff: &mut Vec<bool>) {
     let length: usize = old.tiles.len();
 
     for i in 0..length {
         diff[i] = old.tiles[i] != new.tiles[i];
     }
-}
-
-fn get_average_fps(debug_info: &DebugInfo) -> u32 {
-    let mut sum: f64 = 0.0;
-
-    for i in 0..debug_info.fps_history.len() {
-        sum += *debug_info.fps_history.get(i).unwrap() as f64;
-    }
-
-    return (sum / debug_info.fps_history.len() as f64).round() as u32;
-}
-
-fn generate_frame(render_state: &mut RenderState, game: &Game) {
-    match game.state {
-        GameState::Menu(menu_type) => draw_menu(menu_type, render_state, game),
-        GameState::Paused => (),
-        GameState::Running => draw_ingame(render_state, game),
-        GameState::QuitRequested => (),
-    };
-
-    draw_fps_counter(render_state, game);
 }
 
 fn draw_ingame(render_state: &mut RenderState, game: &Game) {
@@ -183,11 +181,13 @@ fn draw_ingame(render_state: &mut RenderState, game: &Game) {
 }
 
 fn draw_menu(menu_type: MenuType, render_state: &mut RenderState, game: &Game) {
+    clear_frame(render_state);
     match menu_type {
         MenuType::Character => (),
         MenuType::Main => draw_main_menu(render_state, game),
         MenuType::NewCharacter => (),
         MenuType::Pause => (),
+        MenuType::TestMenu => draw_test_menu(render_state, game),
     };
 }
 
@@ -196,8 +196,11 @@ fn draw_main_menu(render_state: &mut RenderState, _game: &Game) {
     draw_text(render_state, "P", Color::Yellow, 3, 1);
     draw_text(render_state, "Play game", Color::White, 5, 1);
     
-    draw_text(render_state, "Q", Color::Yellow, 3, 3);
-    draw_text(render_state, "Quit", Color::White, 5, 3);
+    draw_text(render_state, "Q", Color::Yellow, 3, 2);
+    draw_text(render_state, "Quit", Color::White, 5, 2);
+
+    draw_text(render_state, "T", Color::Yellow, 3, 3);
+    draw_text(render_state, "Test Menu", Color::White, 5, 3);
 }
 
 fn draw_fps_counter(render_state: &mut RenderState, game: &Game) {
@@ -213,11 +216,23 @@ fn draw_fps_counter(render_state: &mut RenderState, game: &Game) {
     draw_text(render_state, text.as_str(), color, 0, 0);
 }
 
-fn draw_text(render_state: &mut RenderState, text: &str, color: Color, x: u16, y: u16) {
+fn draw_text_with_background(render_state: &mut RenderState, text: &str, background: Color, color: Color, x: u16, y: u16) {
     for (position, character) in text.char_indices() {
+        render_state.current_frame.set_background(position as u16 + x, y, background);
         render_state.current_frame.set_color(position as u16 + x, y, color);
         render_state.current_frame.set_icon(position as u16 + x, y, character);
     }
+}
+
+fn draw_text(render_state: &mut RenderState, text: &str, color: Color, x: u16, y: u16) {
+    draw_text_with_background(render_state, text, Color::Black, color, x, y);
+}
+
+fn draw_test_menu(render_state: &mut RenderState, _game: &Game) {
+    draw_text(render_state, "Test Menu", Color::White, 40, 0);
+    draw_text(render_state, "Dropdown: ", Color::White, 0, 2);
+
+    draw_text_with_background(render_state, "      ", Color::White, Color::Black, 11, 2);
 }
 
 pub fn create_render_state(terminal: Terminal) -> Result<RenderState, TerminalError> {
@@ -249,6 +264,27 @@ pub fn game_drawing_end() {
     );
 }
 
+fn get_average_fps(debug_info: &DebugInfo) -> u32 {
+    let mut sum: f64 = 0.0;
+
+    for i in 0..debug_info.fps_history.len() {
+        sum += *debug_info.fps_history.get(i).unwrap() as f64;
+    }
+
+    return (sum / debug_info.fps_history.len() as f64).round() as u32;
+}
+
+fn generate_frame(render_state: &mut RenderState, game: &Game) {
+    match game.state {
+        GameState::Menu(menu_type) => draw_menu(menu_type, render_state, game),
+        GameState::Paused => (),
+        GameState::Running => draw_ingame(render_state, game),
+        GameState::QuitRequested => (),
+    };
+
+    draw_fps_counter(render_state, game);
+}
+
 fn _print_screen(game: &Game, render_state: &mut RenderState) -> Result<(), std::io::Error> {
     generate_frame(render_state, game);
 
@@ -267,6 +303,7 @@ fn _print_screen(game: &Game, render_state: &mut RenderState) -> Result<(), std:
         queue!(
             io::stdout(), cursor::MoveTo(x, y),
             style::SetForegroundColor(draw_info.color),
+            style::SetBackgroundColor(draw_info.background),
             style::Print(draw_info.icon)
         )?;
         render_state.last_frame.set_by_index(i, draw_info);
@@ -305,6 +342,17 @@ fn _read_input(game: &mut Game) -> Result<(), std::io::Error> {
 
     Ok(())
 }
+
 pub fn read_input(game: &mut Game) {
     panic_on_error!(_read_input(game));
+}
+
+pub fn refresh_back_buffer(render_state: &mut RenderState) {
+    for y in 0..render_state.screen.height {
+        for x in 0..render_state.screen.width {
+            render_state.current_frame.set_background(x, y, DEFAULT_BACKGROUND);
+            render_state.last_frame.set_color(x, y, DEFAULT_FOREGROUND);
+            render_state.last_frame.set_icon(x, y, ' ');
+        }
+    }
 }

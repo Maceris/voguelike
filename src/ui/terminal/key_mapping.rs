@@ -1,6 +1,6 @@
 use crossterm::event::{KeyCode, KeyEvent};
 
-use crate::{action::{Action, ActionRequest, Go, NewGame, Noun, Quit}, entity::EntityID, game::{Game, GameState}, new_action, ui::menu::MenuType};
+use crate::{action::{Action, ActionRequest, Go, NewGame, Noun, OpenMenu, Quit}, entity::EntityID, game::{Game, GameState}, new_action, ui::menu::MenuType};
 
 pub fn map_input(event: KeyEvent, game: &Game) -> Option<ActionRequest> {
     return match game.state {
@@ -27,6 +27,7 @@ fn map_input_menu(menu: MenuType, event: KeyEvent, game: &Game) -> Option<Action
         MenuType::Main => map_input_main_menu(event, game),
         MenuType::NewCharacter => None,
         MenuType::Pause => None,
+        MenuType::TestMenu => map_input_test_menu(event, game),
     };
 }
 
@@ -49,6 +50,16 @@ fn map_input_main_menu(event: KeyEvent, game: &Game) -> Option<ActionRequest> {
         };
         return Some(request);
     }
+    if event.code == KeyCode::Char('t') || event.code == KeyCode::Char('T') {
+        let request = ActionRequest {
+            actor: game.special_entities.player,
+            action: new_action!(OpenMenu),
+            noun: Noun::Menu(MenuType::TestMenu),
+            second: Noun::Nothing
+        };
+        return Some(request);
+    }
+    
     return None;
 }
 
@@ -91,3 +102,18 @@ fn map_input_ingame(event: KeyEvent, game: &Game) -> Option<ActionRequest> {
     
     return None;
 }
+
+fn map_input_test_menu(event: KeyEvent, game: &Game) -> Option<ActionRequest> {
+    if event.code == KeyCode::Esc {
+        let request = ActionRequest {
+            actor: game.special_entities.player,
+            action: new_action!(Quit),
+            noun: Noun::Nothing,
+            second: Noun::Nothing
+        };
+        return Some(request);
+    }
+
+    return None;
+}
+

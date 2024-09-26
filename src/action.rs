@@ -1,8 +1,10 @@
 use traits::create_action;
 
-use crate::{component::Position, entity::EntityID, game::{Game, GameState}};
+use crate::{component::Position, entity::EntityID, game::{Game, GameState}, ui::menu::MenuType};
 
+create_action!(CloseMenu);
 create_action!(NewGame);
+create_action!(OpenMenu);
 create_action!(Quit);
 create_action!(Restart);
 create_action!(Restore);
@@ -85,7 +87,9 @@ create_action!(Wear);
 #[derive(Clone, Copy, Debug)]
 pub enum Action {
     // Meta actions
+    CloseMenu(CloseMenu),
     NewGame(NewGame),
+    OpenMenu(OpenMenu),
     Quit(Quit),
     Restart(Restart),
     Restore(Restore),
@@ -191,6 +195,7 @@ macro_rules! stub_action {
 pub enum Noun {
     Entity(EntityID),
     Literal(String),
+    Menu(MenuType),
     Nothing,
     Number(i64),
 }
@@ -204,7 +209,9 @@ pub struct ActionRequest {
 
 pub fn is_meta(action: Action) -> bool {
     return match action {
+        Action::CloseMenu(_) => true,
         Action::NewGame(_) => true,
+        Action::OpenMenu(_) => true,
         Action::Quit(_) => true,
         Action::Restart(_) => true,
         Action::Restore(_) => true,
@@ -224,6 +231,12 @@ pub enum RuleType {
 
 pub type Rule = fn(RuleType, Action) -> bool;
 
+macro_rules! execute_action {
+    ($class:ident) => {
+        Action::$class($class) => $class::execute(game, actor, noun, second)
+    };
+}
+
 pub fn execute_action(game: &mut Game, action_request: ActionRequest) {
     
     let actor:EntityID = action_request.actor;
@@ -236,7 +249,9 @@ pub fn execute_action(game: &mut Game, action_request: ActionRequest) {
     }
 
     let during_result: bool = match action {
+        Action::CloseMenu(CloseMenu) => CloseMenu::execute(game, actor, noun, second),
         Action::NewGame(NewGame) => NewGame::execute(game, actor, noun, second),
+        Action::OpenMenu(OpenMenu) => OpenMenu::execute(game, actor, noun, second),
         Action::Quit(Quit) => Quit::execute(game, actor, noun, second),
         Action::Restart(Restart) => Restart::execute(game, actor, noun, second),
         Action::Restore(Restore) => Restore::execute(game, actor, noun, second),
@@ -332,10 +347,25 @@ pub fn execute_action(game: &mut Game, action_request: ActionRequest) {
     //TODO(ches) react_after of room
 }
 
-
+stub_action!(CloseMenu);
 impl ActionRoutine for NewGame {
     fn execute(game: &mut Game, _actor: EntityID, _noun: Noun, _second: Noun) -> bool {
         game.state = GameState::Running;
+        return false;
+    }
+}
+impl ActionRoutine for OpenMenu {
+    fn execute(game: &mut Game, _actor: EntityID, noun: Noun, _second: Noun) -> bool {
+        let menu = match noun {
+            Noun::Menu(menu_type) => Some(menu_type),
+            _ => None
+        };
+
+        if menu.is_none() {
+            panic!("Unknown menu specified");
+        }
+
+        game.state = GameState::Menu(menu.unwrap());
         return false;
     }
 }
@@ -380,6 +410,7 @@ impl ActionRoutine for Go {
         let maybe_direction: Option<EntityID> = match noun {
             Noun::Entity(id) => Some(id),
             Noun::Literal(_) => None,
+            Noun::Menu(_) => None,
             Noun::Nothing => None,
             Noun::Number(_) => None,
         };

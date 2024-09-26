@@ -10,6 +10,7 @@ use ui::{menu::MenuType, terminal::terminal_util};
 
 mod action;
 mod component;
+mod constants;
 mod entity;
 mod item;
 mod game;
@@ -22,7 +23,8 @@ mod time;
 mod ui;
 
 const FRAMES_PER_SECOND: u8 = 30;
-const NANOS_PER_FRAME: u32 = 1_000_000_000 / (FRAMES_PER_SECOND as u32);
+const NANOS_PER_FRAME: u64 = 1_000_000_000 / (FRAMES_PER_SECOND as u64);
+const NANOS_PER_REFRESH: u64 = 1_000_000_000;
 
 fn main() {
 
@@ -51,11 +53,14 @@ fn main() {
 
     map_gen::populate_map(game.current_map.as_mut());
 
-    const FRAME_DURATION: Duration = Duration::from_nanos(NANOS_PER_FRAME as u64);
+    const FRAME_DURATION: Duration = Duration::from_nanos(NANOS_PER_FRAME);
+    const REFRESH_DURATION: Duration = Duration::from_nanos(NANOS_PER_REFRESH);
 
     game.state = GameState::Menu(MenuType::Main);
 
     let mut frame_start = Instant::now();
+    let mut refresh_timer = Instant::now();
+
     let mut first_frame: bool = true;
     while game.state != GameState::QuitRequested {
         if first_frame {
@@ -74,6 +79,12 @@ fn main() {
             let action:ActionRequest = game.action_queue.pop_front().unwrap();
             
             action::execute_action(&mut game, action);
+        }
+
+        let elapsed_since_refresh = refresh_timer.elapsed();
+        if elapsed_since_refresh >= REFRESH_DURATION {
+            terminal_util::refresh_back_buffer(&mut render_state);
+            refresh_timer = Instant::now();
         }
 
         terminal_util::print_screen(&game, &mut render_state);
