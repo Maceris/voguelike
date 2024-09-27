@@ -2,7 +2,7 @@ use std::collections::VecDeque;
 
 use ringbuffer::AllocRingBuffer;
 
-use crate::{action::ActionRequest, component::{Components, EntityType}, entity::EntityID, map::GameMap, material::{self, MaterialMap}, tag::{self, TagMap}, ui::menu::{self, MenuType}};
+use crate::{action::ActionRequest, component::{Components, EntityType}, entity::EntityID, map::GameMap, material::{self, MaterialMap}, tag::{self, TagMap}, ui::menu::{self, MenuData, MenuType}};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum GameState {
@@ -44,6 +44,7 @@ pub struct Game {
     pub current_map: Box<GameMap>,
     pub data_tables: DataTables,
     pub debug_info: DebugInfo,
+    pub menu_data: MenuData,
     pub special_entities: SpecialEntities,
     pub state: GameState,
 }
@@ -80,6 +81,7 @@ impl Game {
                 material_map: material::generate_material_map(),
             },
             debug_info: DebugInfo{fps_history: AllocRingBuffer::new(100)},
+            menu_data: MenuData::new(),
             special_entities: SpecialEntities::new(),
             state: GameState::Menu(MenuType::Main),
         };

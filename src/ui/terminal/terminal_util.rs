@@ -4,7 +4,7 @@ use std::{error::Error, fmt, io::{self, Write}, time::Duration};
 
 use crossterm::style;
 
-use crate::{action::ActionRequest, component::Position, game::{DebugInfo, Game, GameState}, map::Tile, tabletop::Race, ui::menu::MenuType, FRAMES_PER_SECOND};
+use crate::{action::ActionRequest, component::Position, game::{DebugInfo, Game, GameState}, map::Tile, tabletop::Race, ui::menu::{Dropdown, MenuType}, FRAMES_PER_SECOND};
 
 use super::{icons, key_mapping};
 
@@ -143,6 +143,23 @@ fn diff(old: &ScreenBuffer, new: &ScreenBuffer, diff: &mut Vec<bool>) {
     }
 }
 
+fn draw_dropdown(render_state: &mut RenderState, dropdown: &Dropdown, x: u16, y: u16) {
+    let selection = dropdown.choices.get(dropdown.selected_item).unwrap(); 
+    
+    let foreground = if dropdown.editing { DEFAULT_FOREGROUND } else { DEFAULT_BACKGROUND };
+    let background = if dropdown.editing { DEFAULT_BACKGROUND } else { DEFAULT_FOREGROUND };
+
+    draw_text_with_background(render_state, selection.as_str(), background, foreground, x, y);
+
+    let current_size = selection.len();
+    let remainder = dropdown.size - current_size;
+    for position in 0..remainder {
+        render_state.current_frame.set_background(position as u16 + current_size as u16 + x, y, background);
+        render_state.current_frame.set_color(position as u16 + current_size as u16 + x, y, foreground);
+        render_state.current_frame.set_icon(position as u16 + current_size as u16 + x, y, ' ');
+    }
+}
+
 fn draw_ingame(render_state: &mut RenderState, game: &Game) {
     for y in 0..render_state.screen.height {
         for x in 0..render_state.screen.width {
@@ -228,11 +245,11 @@ fn draw_text(render_state: &mut RenderState, text: &str, color: Color, x: u16, y
     draw_text_with_background(render_state, text, Color::Black, color, x, y);
 }
 
-fn draw_test_menu(render_state: &mut RenderState, _game: &Game) {
+fn draw_test_menu(render_state: &mut RenderState, game: &Game) {
     draw_text(render_state, "Test Menu", Color::White, 40, 0);
     draw_text(render_state, "Dropdown: ", Color::White, 0, 2);
 
-    draw_text_with_background(render_state, "      ", Color::White, Color::Black, 11, 2);
+    draw_dropdown(render_state, &game.menu_data.test_menu.dropdown, 11, 2);
 }
 
 pub fn create_render_state(terminal: Terminal) -> Result<RenderState, TerminalError> {

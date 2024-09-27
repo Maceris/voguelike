@@ -3,7 +3,21 @@ use crate::tabletop::{Alignment, Class, Race, Stats};
 pub struct Dropdown {
     pub choices: Vec<String>,
     pub editing: bool,
-    pub selected_item: u8,
+    pub selected_item: usize,
+    pub size: usize,
+}
+
+impl Dropdown {
+    pub fn recalculate_size(&mut self) {
+        let mut max: usize = 0; 
+        for str in self.choices.iter() {
+            let len: usize = str.len();
+            if len > max {
+                max = len;
+            }
+        }
+        self.size = max;
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -13,6 +27,20 @@ pub enum MenuType {
     NewCharacter,
     Pause,
     TestMenu,
+}
+
+pub struct MenuData {
+    pub character_creation: CharacterCreation,
+    pub test_menu: TestMenu,
+}
+
+impl MenuData {
+    pub fn new() -> Self {
+        Self {
+            character_creation: CharacterCreation::new(),
+            test_menu: TestMenu::new(),
+        }
+    }
 }
 
 pub struct TabMenu {
@@ -55,5 +83,33 @@ impl CharacterCreation {
                 wisdom: 8
             },
         }
+    }
+}
+
+pub struct TestMenu {
+    pub dropdown: Dropdown,
+}
+
+impl TestMenu {
+    pub fn new() -> Self {
+        let mut result = Self {
+            dropdown: Dropdown {
+                choices: vec!["Foo".to_string(), 
+                    "Bar".to_string(),
+                    "Double Foo".to_string(),
+                    "Clown Car".to_string(),
+                    "Warlock".to_string(),
+                    "Ternary".to_string(),
+                    "Baz".to_string(),
+                    "Neptune".to_string(),
+                    "Green".to_string()
+                ],
+                editing: false,
+                selected_item: 0,
+                size: 0,
+            }
+        };
+        result.dropdown.recalculate_size();
+        return result;
     }
 }
