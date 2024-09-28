@@ -29,6 +29,13 @@ pub enum MenuType {
     TestMenu,
 }
 
+pub trait MenuNavigation {
+    fn navigate_menu_up(&mut self);
+    fn navigate_menu_left(&mut self);
+    fn navigate_menu_down(&mut self);
+    fn navigate_menu_right(&mut self);
+}
+
 pub struct MenuData {
     pub character_creation: CharacterCreation,
     pub test_menu: TestMenu,
@@ -86,6 +93,24 @@ impl CharacterCreation {
     }
 }
 
+impl MenuNavigation for CharacterCreation {
+    fn navigate_menu_up(&mut self) {
+        //TODO(ches) implement this
+    }
+
+    fn navigate_menu_left(&mut self) {
+        //TODO(ches) implement this
+    }
+
+    fn navigate_menu_down(&mut self) {
+        //TODO(ches) implement this
+    }
+
+    fn navigate_menu_right(&mut self) {
+        //TODO(ches) implement this
+    }
+}
+
 pub struct TestMenu {
     pub dropdown: Dropdown,
 }
@@ -111,5 +136,23 @@ impl TestMenu {
         };
         result.dropdown.recalculate_size();
         return result;
+    }
+}
+
+impl MenuNavigation for TestMenu {
+    fn navigate_menu_up(&mut self) {
+        //TODO(ches) implement this
+    }
+
+    fn navigate_menu_left(&mut self) {
+        //TODO(ches) implement this
+    }
+
+    fn navigate_menu_down(&mut self) {
+        //TODO(ches) implement this
+    }
+
+    fn navigate_menu_right(&mut self) {
+        //TODO(ches) implement this
     }
 }

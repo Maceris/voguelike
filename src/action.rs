@@ -1,8 +1,9 @@
 use traits::create_action;
 
-use crate::{component::Position, entity::EntityID, game::{Game, GameState}, ui::menu::MenuType};
+use crate::{component::Position, entity::EntityID, game::{Game, GameState}, ui::menu::{MenuNavigation, MenuType}};
 
 create_action!(CloseMenu);
+create_action!(NavigateMenu);
 create_action!(NewGame);
 create_action!(OpenMenu);
 create_action!(Quit);
@@ -88,6 +89,7 @@ create_action!(Wear);
 pub enum Action {
     // Meta actions
     CloseMenu(CloseMenu),
+    NavigateMenu(NavigateMenu),
     NewGame(NewGame),
     OpenMenu(OpenMenu),
     Quit(Quit),
@@ -210,6 +212,7 @@ pub struct ActionRequest {
 pub fn is_meta(action: Action) -> bool {
     return match action {
         Action::CloseMenu(_) => true,
+        Action::NavigateMenu(_) => true,
         Action::NewGame(_) => true,
         Action::OpenMenu(_) => true,
         Action::Quit(_) => true,
@@ -250,6 +253,7 @@ pub fn execute_action(game: &mut Game, action_request: ActionRequest) {
 
     let during_result: bool = match action {
         Action::CloseMenu(CloseMenu) => CloseMenu::execute(game, actor, noun, second),
+        Action::NavigateMenu(NavigateMenu) => NavigateMenu::execute(game, actor, noun, second),
         Action::NewGame(NewGame) => NewGame::execute(game, actor, noun, second),
         Action::OpenMenu(OpenMenu) => OpenMenu::execute(game, actor, noun, second),
         Action::Quit(Quit) => Quit::execute(game, actor, noun, second),
@@ -348,6 +352,58 @@ pub fn execute_action(game: &mut Game, action_request: ActionRequest) {
 }
 
 stub_action!(CloseMenu);
+impl ActionRoutine for NavigateMenu {
+    fn execute(game: &mut Game, _actor: EntityID, noun: Noun, _second: Noun) -> bool {
+        let maybe_direction: Option<EntityID> = match noun {
+            Noun::Entity(id) => Some(id),
+            Noun::Literal(_) => None,
+            Noun::Menu(_) => None,
+            Noun::Nothing => None,
+            Noun::Number(_) => None,
+        };
+        if maybe_direction.is_none() {
+            //TODO(ches) report an error somehow
+            return true;
+        }
+
+        let menu: Option<MenuType> = match game.state {
+            GameState::Menu(menu_type) => Some(menu_type),
+            _ => None
+        };
+
+        if menu.is_none() {
+            //TODO(ches) report an error somehow
+            return true;
+        }
+
+        let maybe_menu_data: Option<&mut dyn MenuNavigation> = match menu.unwrap() {
+            MenuType::Character => Some(&mut game.menu_data.character_creation),
+            MenuType::TestMenu => Some(&mut game.menu_data.test_menu),
+            _ => None,
+        };
+
+        if maybe_menu_data.is_none() {
+            return false;
+        }
+
+        let menu_data: &mut dyn MenuNavigation = maybe_menu_data.unwrap();
+        let direction = maybe_direction.unwrap();
+        if direction == game.special_entities.north {
+            menu_data.navigate_menu_up();
+        }
+        else if direction == game.special_entities.east {
+            menu_data.navigate_menu_right();
+        }
+        else if direction == game.special_entities.south {
+            menu_data.navigate_menu_down();
+        }
+        else if direction == game.special_entities.west {
+            menu_data.navigate_menu_left();
+        }
+
+        return false;
+    }
+}
 impl ActionRoutine for NewGame {
     fn execute(game: &mut Game, _actor: EntityID, _noun: Noun, _second: Noun) -> bool {
         game.state = GameState::Running;
