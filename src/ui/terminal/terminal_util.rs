@@ -149,10 +149,30 @@ fn draw_dropdown(render_state: &mut RenderState, dropdown: &Dropdown, x: u16, y:
     let foreground = if !dropdown.editing { DEFAULT_FOREGROUND } else { DEFAULT_BACKGROUND };
     let background = if !dropdown.editing { DEFAULT_BACKGROUND } else { DEFAULT_FOREGROUND };
 
-    draw_text_with_background(render_state, selection.as_str(), background, foreground, x, y);
+    draw_dropdown_line(render_state, x, y, foreground, background, selection.as_str(), dropdown.size);
 
-    let current_size = selection.len();
-    let remainder = dropdown.size - current_size;
+    if dropdown.editing {
+        let first: i32 = i32::max(0, dropdown.selected_item as i32 - y as i32);
+        let last: i32 = i32::min(dropdown.choices.len() as i32, render_state.screen.height as i32 - y as i32);
+
+        for line in first as usize..dropdown.selected_item {
+            let diff: u16 = (dropdown.selected_item - line) as u16;
+            
+            draw_dropdown_line(render_state, x, y - diff, foreground, Color::Grey, dropdown.choices.get(line).unwrap().as_str(), dropdown.size);
+        }
+        for line in dropdown.selected_item + 1..last as usize {
+            let diff: u16 = (line - dropdown.selected_item) as u16;
+            
+            draw_dropdown_line(render_state, x, y + diff, foreground, Color::Grey, dropdown.choices.get(line).unwrap().as_str(), dropdown.size);
+        }
+    }
+}
+
+fn draw_dropdown_line(render_state: &mut RenderState, x: u16, y: u16, foreground: Color, background: Color, text: &str, width: usize) {
+    draw_text_with_background(render_state, text, background, foreground, x, y);
+
+    let current_size = text.len();
+    let remainder = width - current_size;
     for position in 0..remainder {
         render_state.current_frame.set_background(position as u16 + current_size as u16 + x, y, background);
         render_state.current_frame.set_color(position as u16 + current_size as u16 + x, y, foreground);
