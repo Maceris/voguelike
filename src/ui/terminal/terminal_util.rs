@@ -152,18 +152,19 @@ fn draw_dropdown(render_state: &mut RenderState, dropdown: &Dropdown, x: u16, y:
     draw_dropdown_line(render_state, x, y, foreground, background, selection.as_str(), dropdown.size);
 
     if dropdown.editing {
-        let first: i32 = i32::max(0, dropdown.selected_item as i32 - y as i32);
-        let last: i32 = i32::min(dropdown.choices.len() as i32, render_state.screen.height as i32 - y as i32);
-
-        for line in first as usize..dropdown.selected_item {
-            let diff: u16 = (dropdown.selected_item - line) as u16;
+        for line in 0..dropdown.selected_item {
+            let pos_y: i32 = y as i32 + line as i32 - dropdown.selected_item as i32;
             
-            draw_dropdown_line(render_state, x, y - diff, foreground, Color::Grey, dropdown.choices.get(line).unwrap().as_str(), dropdown.size);
+            if pos_y >= 0 {
+                draw_dropdown_line(render_state, x, pos_y as u16, foreground, Color::Grey, dropdown.choices.get(line).unwrap().as_str(), dropdown.size);
+            }
         }
-        for line in dropdown.selected_item + 1..last as usize {
-            let diff: u16 = (line - dropdown.selected_item) as u16;
+        for line in dropdown.selected_item + 1..dropdown.choices.len() {
+            let pos_y: u16 = y + line as u16 - dropdown.selected_item as u16;
             
-            draw_dropdown_line(render_state, x, y + diff, foreground, Color::Grey, dropdown.choices.get(line).unwrap().as_str(), dropdown.size);
+            if pos_y < render_state.screen.height {
+                draw_dropdown_line(render_state, x, pos_y, foreground, Color::Grey, dropdown.choices.get(line).unwrap().as_str(), dropdown.size);
+            }
         }
     }
 }
