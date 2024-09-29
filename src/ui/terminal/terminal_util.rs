@@ -1,4 +1,4 @@
-use crossterm::{cursor, event::{poll, read, Event, KeyEvent}, execute, queue, style::Color, terminal};
+use crossterm::{cursor, event::{self, poll, read, Event, KeyEvent, KeyEventKind, KeyboardEnhancementFlags}, execute, queue, style::Color, terminal};
 use ringbuffer::RingBuffer;
 use std::{error::Error, fmt, io::{self, Write}, time::Duration};
 
@@ -146,8 +146,8 @@ fn diff(old: &ScreenBuffer, new: &ScreenBuffer, diff: &mut Vec<bool>) {
 fn draw_dropdown(render_state: &mut RenderState, dropdown: &Dropdown, x: u16, y: u16) {
     let selection = dropdown.choices.get(dropdown.selected_item).unwrap(); 
     
-    let foreground = if dropdown.editing { DEFAULT_FOREGROUND } else { DEFAULT_BACKGROUND };
-    let background = if dropdown.editing { DEFAULT_BACKGROUND } else { DEFAULT_FOREGROUND };
+    let foreground = if !dropdown.editing { DEFAULT_FOREGROUND } else { DEFAULT_BACKGROUND };
+    let background = if !dropdown.editing { DEFAULT_BACKGROUND } else { DEFAULT_FOREGROUND };
 
     draw_text_with_background(render_state, selection.as_str(), background, foreground, x, y);
 
@@ -270,11 +270,21 @@ pub fn game_drawing_begin() {
         terminal::EnterAlternateScreen,
         cursor::Hide
     );
+
+    if !cfg!(windows) {
+        panic_on_error!(execute!(io::stdout(), event::PushKeyboardEnhancementFlags(KeyboardEnhancementFlags::REPORT_EVENT_TYPES)));
+    }
+
     panic_on_error!(terminal::enable_raw_mode());
 }
 
 pub fn game_drawing_end() {
     panic_on_error!(terminal::disable_raw_mode());
+    
+    if !cfg!(windows) {
+        panic_on_error!(execute!(io::stdout(), event::PopKeyboardEnhancementFlags));
+    }
+
     run_commands!(
         terminal::LeaveAlternateScreen,
         cursor::Show
@@ -335,6 +345,10 @@ pub fn print_screen(game: &Game, render_state: &mut RenderState) {
 }
 
 fn handle_key(event: KeyEvent, game: &mut Game) {
+    if event.kind != KeyEventKind::Press {
+        return;
+    }
+
     let action: Option<ActionRequest> = key_mapping::map_input(event, game);
  
     if action.is_some() {

@@ -142,17 +142,29 @@ impl TestMenu {
 impl MenuNavigation for TestMenu {
     fn navigate_menu_up(&mut self) {
         //TODO(ches) implement this
+        if self.dropdown.editing {
+            if self.dropdown.selected_item > 0 {
+                self.dropdown.selected_item -= 1;
+            }
+        }
     }
 
     fn navigate_menu_left(&mut self) {
         //TODO(ches) implement this
+        self.dropdown.editing = false;
     }
 
     fn navigate_menu_down(&mut self) {
         //TODO(ches) implement this
+        if self.dropdown.editing {
+            if self.dropdown.selected_item < self.dropdown.choices.len() - 1 {
+                self.dropdown.selected_item += 1;
+            }
+        }
     }
 
     fn navigate_menu_right(&mut self) {
         //TODO(ches) implement this
+        self.dropdown.editing = true;
     }
 }

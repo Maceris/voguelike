@@ -1,6 +1,6 @@
 use crossterm::event::{KeyCode, KeyEvent};
 
-use crate::{action::{Action, ActionRequest, Go, NewGame, Noun, OpenMenu, Quit}, entity::EntityID, game::{Game, GameState}, new_action, ui::menu::MenuType};
+use crate::{action::{Action, ActionRequest, Go, NavigateMenu, NewGame, Noun, OpenMenu, Quit}, entity::EntityID, game::{Game, GameState}, new_action, ui::menu::MenuType};
 
 pub fn map_input(event: KeyEvent, game: &Game) -> Option<ActionRequest> {
     return match game.state {
@@ -109,6 +109,24 @@ fn map_input_test_menu(event: KeyEvent, game: &Game) -> Option<ActionRequest> {
             actor: game.special_entities.player,
             action: new_action!(Quit),
             noun: Noun::Nothing,
+            second: Noun::Nothing
+        };
+        return Some(request);
+    }
+
+    let direction = match event.code {
+        KeyCode::Up => Some(game.special_entities.north),
+        KeyCode::Right => Some(game.special_entities.east),
+        KeyCode::Down => Some(game.special_entities.south),
+        KeyCode::Left => Some(game.special_entities.west),
+        _=> None,
+    };
+
+    if direction.is_some() {
+        let request = ActionRequest {
+            actor: game.special_entities.player,
+            action: new_action!(NavigateMenu),
+            noun: Noun::Entity(direction.unwrap()),
             second: Noun::Nothing
         };
         return Some(request);
