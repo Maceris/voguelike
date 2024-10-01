@@ -1,8 +1,9 @@
-use crate::tabletop::{Alignment, Class, Race, Stats};
+use crate::{constants, tabletop::{Alignment, Class, Race, Stats}};
 
 pub struct Dropdown {
     pub choices: Vec<String>,
     pub editing: bool,
+    pub label: String,
     pub selected_item: usize,
     pub size: usize,
 }
@@ -64,6 +65,13 @@ pub struct TableRow {
     pub values: Vec<String>,
 }
 
+pub struct TextField {
+    pub editing: bool,
+    pub label: String,
+    pub max_length: u16,
+    pub value: String,
+}
+
 pub struct CharacterCreation {
     pub alignment: Option<Alignment>,
     pub class: Option<Class>,
@@ -113,6 +121,7 @@ impl MenuNavigation for CharacterCreation {
 
 pub struct TestMenu {
     pub dropdown: Dropdown,
+    pub text_field: TextField,
 }
 
 impl TestMenu {
@@ -130,8 +139,15 @@ impl TestMenu {
                     "Green".to_string()
                 ],
                 editing: false,
+                label: "Dropdown".to_string(),
                 selected_item: 0,
                 size: 0,
+            },
+            text_field: TextField {
+                editing: false,
+                label: "Player Name".to_string(),
+                max_length: constants::NAME_MAX_LENGTH,
+                value: String::new(),
             }
         };
         result.dropdown.recalculate_size();

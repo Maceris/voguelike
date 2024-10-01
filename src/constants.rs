@@ -1,2 +1,2 @@
 
-const NAME_MAX_LENGTH: u16 = 12;
+pub const NAME_MAX_LENGTH: u16 = 12;

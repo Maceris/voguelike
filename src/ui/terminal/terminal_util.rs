@@ -4,7 +4,7 @@ use std::{error::Error, fmt, io::{self, Write}, time::Duration};
 
 use crossterm::style;
 
-use crate::{action::ActionRequest, component::Position, game::{DebugInfo, Game, GameState}, map::Tile, tabletop::Race, ui::menu::{Dropdown, MenuType}, FRAMES_PER_SECOND};
+use crate::{action::ActionRequest, component::Position, game::{DebugInfo, Game, GameState}, map::Tile, tabletop::Race, ui::menu::{Dropdown, MenuType, TextField}, FRAMES_PER_SECOND};
 
 use super::{icons, key_mapping};
 
@@ -144,26 +144,31 @@ fn diff(old: &ScreenBuffer, new: &ScreenBuffer, diff: &mut Vec<bool>) {
 }
 
 fn draw_dropdown(render_state: &mut RenderState, dropdown: &Dropdown, x: u16, y: u16) {
+
+    draw_text(render_state, &dropdown.label, Color::White, x, y);
+
+    let content_x: u16 = dropdown.label.len() as u16 + 1;
+
     let selection = dropdown.choices.get(dropdown.selected_item).unwrap(); 
     
     let foreground = if !dropdown.editing { DEFAULT_FOREGROUND } else { DEFAULT_BACKGROUND };
     let background = if !dropdown.editing { DEFAULT_BACKGROUND } else { DEFAULT_FOREGROUND };
 
-    draw_dropdown_line(render_state, x, y, foreground, background, selection.as_str(), dropdown.size);
+    draw_dropdown_line(render_state, content_x, y, foreground, background, selection.as_str(), dropdown.size);
 
     if dropdown.editing {
         for line in 0..dropdown.selected_item {
             let pos_y: i32 = y as i32 + line as i32 - dropdown.selected_item as i32;
             
             if pos_y >= 0 {
-                draw_dropdown_line(render_state, x, pos_y as u16, foreground, Color::Grey, dropdown.choices.get(line).unwrap().as_str(), dropdown.size);
+                draw_dropdown_line(render_state, content_x, pos_y as u16, foreground, Color::Grey, dropdown.choices.get(line).unwrap().as_str(), dropdown.size);
             }
         }
         for line in dropdown.selected_item + 1..dropdown.choices.len() {
             let pos_y: u16 = y + line as u16 - dropdown.selected_item as u16;
             
             if pos_y < render_state.screen.height {
-                draw_dropdown_line(render_state, x, pos_y, foreground, Color::Grey, dropdown.choices.get(line).unwrap().as_str(), dropdown.size);
+                draw_dropdown_line(render_state, content_x, pos_y, foreground, Color::Grey, dropdown.choices.get(line).unwrap().as_str(), dropdown.size);
             }
         }
     }
@@ -266,11 +271,18 @@ fn draw_text(render_state: &mut RenderState, text: &str, color: Color, x: u16, y
     draw_text_with_background(render_state, text, Color::Black, color, x, y);
 }
 
+fn draw_text_field(render_state: &mut RenderState, text_field: &TextField, x: u16, y: u16) {
+    draw_text(render_state, &text_field.label, Color::White, x, y);
+
+    let content_x: u16 = text_field.label.len() as u16 + 1;
+    //TODO(ches) add editing
+}
+
 fn draw_test_menu(render_state: &mut RenderState, game: &Game) {
     draw_text(render_state, "Test Menu", Color::White, 40, 0);
-    draw_text(render_state, "Dropdown: ", Color::White, 0, 2);
 
-    draw_dropdown(render_state, &game.menu_data.test_menu.dropdown, 11, 2);
+    draw_dropdown(render_state, &game.menu_data.test_menu.dropdown, 0, 2);
+    draw_text_field(render_state, &game.menu_data.test_menu.text_field, 0, 4);
 }
 
 pub fn create_render_state(terminal: Terminal) -> Result<RenderState, TerminalError> {
