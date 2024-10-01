@@ -351,7 +351,25 @@ pub fn execute_action(game: &mut Game, action_request: ActionRequest) {
     //TODO(ches) react_after of room
 }
 
-stub_action!(CloseMenu);
+impl ActionRoutine for CloseMenu {
+    fn execute(game: &mut Game, _actor: EntityID, _noun: Noun, _second: Noun) -> bool {
+        let menu = match game.state {
+            GameState::Menu(menu) => Some(menu),
+            _ => None,
+        };
+
+        if menu.is_none() {
+            panic!("Unknown menu specified");
+        }
+
+        match menu.unwrap() {
+            MenuType::TestMenu => game.state = GameState::Menu(MenuType::Main),
+            _ => ()
+        }
+
+        return false;
+    }
+}
 impl ActionRoutine for NavigateMenu {
     fn execute(game: &mut Game, _actor: EntityID, noun: Noun, _second: Noun) -> bool {
         let maybe_direction: Option<EntityID> = match noun {
@@ -391,14 +409,14 @@ impl ActionRoutine for NavigateMenu {
         if direction == game.special_entities.north {
             menu_data.navigate_menu_up();
         }
-        else if direction == game.special_entities.east {
-            menu_data.navigate_menu_right();
-        }
         else if direction == game.special_entities.south {
             menu_data.navigate_menu_down();
         }
-        else if direction == game.special_entities.west {
-            menu_data.navigate_menu_left();
+        else if direction == game.special_entities.up {
+            menu_data.navigate_menu_out();
+        }
+        else if direction == game.special_entities.down {
+            menu_data.navigate_menu_in();
         }
 
         return false;

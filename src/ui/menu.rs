@@ -31,10 +31,10 @@ pub enum MenuType {
 }
 
 pub trait MenuNavigation {
-    fn navigate_menu_up(&mut self);
-    fn navigate_menu_left(&mut self);
     fn navigate_menu_down(&mut self);
-    fn navigate_menu_right(&mut self);
+    fn navigate_menu_in(&mut self);
+    fn navigate_menu_out(&mut self);
+    fn navigate_menu_up(&mut self);
 }
 
 pub struct MenuData {
@@ -102,19 +102,19 @@ impl CharacterCreation {
 }
 
 impl MenuNavigation for CharacterCreation {
-    fn navigate_menu_up(&mut self) {
-        //TODO(ches) implement this
-    }
-
-    fn navigate_menu_left(&mut self) {
-        //TODO(ches) implement this
-    }
-
     fn navigate_menu_down(&mut self) {
         //TODO(ches) implement this
     }
+    
+    fn navigate_menu_in(&mut self) {
+        //TODO(ches) implement this
+    }
 
-    fn navigate_menu_right(&mut self) {
+    fn navigate_menu_out(&mut self) {
+        //TODO(ches) implement this
+    }
+
+    fn navigate_menu_up(&mut self) {
         //TODO(ches) implement this
     }
 }
@@ -156,20 +156,6 @@ impl TestMenu {
 }
 
 impl MenuNavigation for TestMenu {
-    fn navigate_menu_up(&mut self) {
-        //TODO(ches) implement this
-        if self.dropdown.editing {
-            if self.dropdown.selected_item > 0 {
-                self.dropdown.selected_item -= 1;
-            }
-        }
-    }
-
-    fn navigate_menu_left(&mut self) {
-        //TODO(ches) implement this
-        self.dropdown.editing = false;
-    }
-
     fn navigate_menu_down(&mut self) {
         //TODO(ches) implement this
         if self.dropdown.editing {
@@ -178,9 +164,23 @@ impl MenuNavigation for TestMenu {
             }
         }
     }
-
-    fn navigate_menu_right(&mut self) {
+    
+    fn navigate_menu_in(&mut self) {
         //TODO(ches) implement this
-        self.dropdown.editing = true;
+        self.dropdown.editing = !self.dropdown.editing;
+    }
+    
+    fn navigate_menu_out(&mut self) {
+        //TODO(ches) implement this
+        self.dropdown.editing = false;
+    }
+
+    fn navigate_menu_up(&mut self) {
+        //TODO(ches) implement this
+        if self.dropdown.editing {
+            if self.dropdown.selected_item > 0 {
+                self.dropdown.selected_item -= 1;
+            }
+        }
     }
 }

@@ -172,6 +172,8 @@ fn draw_dropdown(render_state: &mut RenderState, dropdown: &Dropdown, x: u16, y:
             }
         }
     }
+    //TODO(ches) Draw the dropdown choices on top of other things, possibly just after other things, 
+    //or maybe need depth values for screen buffer fragment discarding.
 }
 
 fn draw_dropdown_line(render_state: &mut RenderState, x: u16, y: u16, foreground: Color, background: Color, text: &str, width: usize) {

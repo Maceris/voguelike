@@ -1,6 +1,6 @@
 use crossterm::event::{KeyCode, KeyEvent};
 
-use crate::{action::{Action, ActionRequest, Go, NavigateMenu, NewGame, Noun, OpenMenu, Quit}, entity::EntityID, game::{Game, GameState}, new_action, ui::menu::MenuType};
+use crate::{action::{Action, ActionRequest, CloseMenu, Go, NavigateMenu, NewGame, Noun, OpenMenu, Quit}, entity::EntityID, game::{Game, GameState}, new_action, ui::menu::MenuType};
 
 pub fn map_input(event: KeyEvent, game: &Game) -> Option<ActionRequest> {
     return match game.state {
@@ -12,16 +12,6 @@ pub fn map_input(event: KeyEvent, game: &Game) -> Option<ActionRequest> {
 }
 
 fn map_input_menu(menu: MenuType, event: KeyEvent, game: &Game) -> Option<ActionRequest> {
-    if event.code == KeyCode::Esc {
-        let request = ActionRequest {
-            actor: game.special_entities.player,
-            action: new_action!(Quit),
-            noun: Noun::Nothing,
-            second: Noun::Nothing
-        };
-        return Some(request);
-    }
-
     return match menu {
         MenuType::Character => None,
         MenuType::Main => map_input_main_menu(event, game),
@@ -104,10 +94,11 @@ fn map_input_ingame(event: KeyEvent, game: &Game) -> Option<ActionRequest> {
 }
 
 fn map_input_test_menu(event: KeyEvent, game: &Game) -> Option<ActionRequest> {
-    if event.code == KeyCode::Esc {
+    // TODO(ches) need equivalent condition for if we are editing *anything*
+    if event.code == KeyCode::Esc && !game.menu_data.test_menu.dropdown.editing {
         let request = ActionRequest {
             actor: game.special_entities.player,
-            action: new_action!(Quit),
+            action: new_action!(CloseMenu),
             noun: Noun::Nothing,
             second: Noun::Nothing
         };
@@ -119,6 +110,8 @@ fn map_input_test_menu(event: KeyEvent, game: &Game) -> Option<ActionRequest> {
         KeyCode::Right => Some(game.special_entities.east),
         KeyCode::Down => Some(game.special_entities.south),
         KeyCode::Left => Some(game.special_entities.west),
+        KeyCode::Esc => Some(game.special_entities.up),
+        KeyCode::Enter => Some(game.special_entities.down),
         _=> None,
     };
 
