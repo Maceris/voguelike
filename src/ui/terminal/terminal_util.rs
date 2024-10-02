@@ -4,7 +4,7 @@ use std::{error::Error, fmt, io::{self, Write}, time::Duration};
 
 use crossterm::style;
 
-use crate::{action::ActionRequest, component::Position, game::{DebugInfo, Game, GameState}, map::Tile, tabletop::Race, ui::menu::{Dropdown, MenuType, TextField}, FRAMES_PER_SECOND};
+use crate::{action::ActionRequest, component::Position, game::{DebugInfo, Game, GameState}, map::Tile, tabletop::Race, ui::menu::{Dropdown, FocusTracking, Focusable, MenuType, TestMenu, TextField}, FRAMES_PER_SECOND};
 
 use super::{icons, key_mapping};
 
@@ -147,7 +147,7 @@ fn draw_dropdown(render_state: &mut RenderState, dropdown: &Dropdown, x: u16, y:
 
     draw_text(render_state, &dropdown.label, Color::White, x, y);
 
-    let content_x: u16 = dropdown.label.len() as u16 + 1;
+    let content_x: u16 = x + dropdown.label.len() as u16 + 1;
 
     let selection = dropdown.choices.get(dropdown.selected_item).unwrap(); 
     
@@ -283,8 +283,25 @@ fn draw_text_field(render_state: &mut RenderState, text_field: &TextField, x: u1
 fn draw_test_menu(render_state: &mut RenderState, game: &Game) {
     draw_text(render_state, "Test Menu", Color::White, 40, 0);
 
-    draw_dropdown(render_state, &game.menu_data.test_menu.dropdown, 0, 2);
-    draw_text_field(render_state, &game.menu_data.test_menu.text_field, 0, 4);
+    let menu_data: &TestMenu = &game.menu_data.test_menu;
+
+    if menu_data.get_current_focus_index() != menu_data.dropdown.get_focus_index() {
+        draw_dropdown(render_state, &menu_data.dropdown, 2, 2);
+    }
+    if menu_data.get_current_focus_index() != menu_data.text_field.get_focus_index() {
+        draw_text_field(render_state, &menu_data.text_field, 2, 4);
+    }
+
+    //TODO(ches) make this a generic system to draw the focused item last
+    if menu_data.get_current_focus_index() == menu_data.dropdown.get_focus_index() {
+        draw_dropdown(render_state, &menu_data.dropdown, 2, 2);
+        draw_text(render_state, "*", Color::Yellow, 0, 2);
+    }
+    if menu_data.get_current_focus_index() == menu_data.text_field.get_focus_index() {
+        draw_text_field(render_state, &menu_data.text_field, 2, 4);
+        draw_text(render_state, "*", Color::Yellow, 0, 4);
+    }
+    
 }
 
 pub fn create_render_state(terminal: Terminal) -> Result<RenderState, TerminalError> {
