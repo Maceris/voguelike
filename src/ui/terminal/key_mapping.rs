@@ -94,8 +94,7 @@ fn map_input_ingame(event: KeyEvent, game: &Game) -> Option<ActionRequest> {
 }
 
 fn map_input_test_menu(event: KeyEvent, game: &Game) -> Option<ActionRequest> {
-    // TODO(ches) need equivalent condition for if we are editing *anything*
-    if event.code == KeyCode::Esc && !game.menu_data.test_menu.dropdown.editing {
+    if event.code == KeyCode::Esc && !game.menu_data.test_menu.editing_anything() {
         let request = ActionRequest {
             actor: game.special_entities.player,
             action: new_action!(CloseMenu),

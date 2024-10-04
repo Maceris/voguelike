@@ -172,8 +172,6 @@ fn draw_dropdown(render_state: &mut RenderState, dropdown: &Dropdown, x: u16, y:
             }
         }
     }
-    //TODO(ches) Draw the dropdown choices on top of other things, possibly just after other things, 
-    //or maybe need depth values for screen buffer fragment discarding.
 }
 
 fn draw_dropdown_line(render_state: &mut RenderState, x: u16, y: u16, foreground: Color, background: Color, text: &str, width: usize) {
@@ -276,7 +274,21 @@ fn draw_text(render_state: &mut RenderState, text: &str, color: Color, x: u16, y
 fn draw_text_field(render_state: &mut RenderState, text_field: &TextField, x: u16, y: u16) {
     draw_text(render_state, &text_field.label, Color::White, x, y);
 
-    let content_x: u16 = text_field.label.len() as u16 + 1;
+    let content_x: u16 = x + text_field.label.len() as u16 + 1;
+    
+    let foreground = if !text_field.editing { DEFAULT_FOREGROUND } else { DEFAULT_BACKGROUND };
+    let background = if !text_field.editing { DEFAULT_BACKGROUND } else { DEFAULT_FOREGROUND };
+    
+    draw_text_with_background(render_state, &text_field.value, background, foreground, content_x, y);
+    
+    let current_size: u16 = text_field.value.len() as u16;
+    let remainder = text_field.max_length - current_size;
+    for position in 0..remainder {
+        render_state.current_frame.set_background(position as u16 + current_size as u16 + content_x, y, background);
+        render_state.current_frame.set_color(position as u16 + current_size as u16 + content_x, y, foreground);
+        render_state.current_frame.set_icon(position as u16 + current_size as u16 + content_x, y, ' ');
+    }
+
     //TODO(ches) add editing
 }
 

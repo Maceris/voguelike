@@ -189,6 +189,12 @@ impl TestMenu {
         result.dropdown.recalculate_size();
         return result;
     }
+    
+    pub fn editing_anything(&self) -> bool {
+        // TODO(ches) Generalize this
+        return self.dropdown.editing 
+            || self.text_field.editing;
+    }
 }
 
 impl FocusTracking for TestMenu {
@@ -239,11 +245,17 @@ impl MenuNavigation for TestMenu {
         if self.focus_index == self.dropdown.get_focus_index() {
             self.dropdown.editing = !self.dropdown.editing;
         }
+        else if self.focus_index == self.text_field.get_focus_index() {
+            self.text_field.editing = !self.text_field.editing;
+        }
     }
     
     fn navigate_menu_out(&mut self) {
         if self.focus_index == self.dropdown.get_focus_index() {
             self.dropdown.editing = false;
+        }
+        else if self.focus_index == self.text_field.get_focus_index() {
+            self.text_field.editing = false;
         }
     }
 
