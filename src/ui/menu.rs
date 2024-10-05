@@ -1,4 +1,4 @@
-use crate::{constants, tabletop::{Alignment, Class, Race, Stats}};
+use crate::{constants::{self, NAME_MAX_LENGTH}, tabletop::{Alignment, Class, Race, Stats}};
 
 type FocusIndex = u16;
 
@@ -183,7 +183,7 @@ impl TestMenu {
                 focus_index: 1,
                 label: "Player Name".to_string(),
                 max_length: constants::NAME_MAX_LENGTH,
-                value: String::new(),
+                value: String::with_capacity(NAME_MAX_LENGTH as usize),
             }
         };
         result.dropdown.recalculate_size();

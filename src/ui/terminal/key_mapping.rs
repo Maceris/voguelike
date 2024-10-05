@@ -1,8 +1,8 @@
 use crossterm::event::{KeyCode, KeyEvent};
 
-use crate::{action::{Action, ActionRequest, CloseMenu, Go, NavigateMenu, NewGame, Noun, OpenMenu, Quit}, entity::EntityID, game::{Game, GameState}, new_action, ui::menu::MenuType};
+use crate::{action::{Action, ActionRequest, CloseMenu, Go, NavigateMenu, NewGame, Noun, OpenMenu, Quit}, entity::EntityID, game::{Game, GameState}, new_action, ui::menu::{MenuType, TextField}};
 
-pub fn map_input(event: KeyEvent, game: &Game) -> Option<ActionRequest> {
+pub fn map_input(event: KeyEvent, game: &mut Game) -> Option<ActionRequest> {
     return match game.state {
         GameState::Menu(menu)=> map_input_menu(menu, event, game),
         GameState::Paused=> map_input_paused(event, game),
@@ -11,7 +11,7 @@ pub fn map_input(event: KeyEvent, game: &Game) -> Option<ActionRequest> {
     };
 }
 
-fn map_input_menu(menu: MenuType, event: KeyEvent, game: &Game) -> Option<ActionRequest> {
+fn map_input_menu(menu: MenuType, event: KeyEvent, game: &mut Game) -> Option<ActionRequest> {
     return match menu {
         MenuType::Character => None,
         MenuType::Main => map_input_main_menu(event, game),
@@ -93,7 +93,7 @@ fn map_input_ingame(event: KeyEvent, game: &Game) -> Option<ActionRequest> {
     return None;
 }
 
-fn map_input_test_menu(event: KeyEvent, game: &Game) -> Option<ActionRequest> {
+fn map_input_test_menu(event: KeyEvent, game: &mut Game) -> Option<ActionRequest> {
     if event.code == KeyCode::Esc && !game.menu_data.test_menu.editing_anything() {
         let request = ActionRequest {
             actor: game.special_entities.player,
@@ -102,6 +102,31 @@ fn map_input_test_menu(event: KeyEvent, game: &Game) -> Option<ActionRequest> {
             second: Noun::Nothing
         };
         return Some(request);
+    }
+
+    let character: Option<char> = match event.code {
+        KeyCode::Char(character) => Some(character),
+        _ => None,
+    };
+
+    if character.is_some() {
+        let text_field: &mut TextField = &mut game.menu_data.test_menu.text_field;
+        if text_field.editing {
+            if text_field.value.len() < text_field.max_length as usize {
+                text_field.value.push(character.unwrap());
+                return None;
+            }
+        }
+    }
+
+    if event.code == KeyCode::Backspace {
+        let text_field: &mut TextField = &mut game.menu_data.test_menu.text_field;
+        if text_field.editing {
+            if text_field.value.len() > 0 {
+                text_field.value.truncate(text_field.value.len() - 1);
+                return None;
+            }
+        }
     }
 
     let direction = match event.code {
