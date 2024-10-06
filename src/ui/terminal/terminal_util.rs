@@ -101,20 +101,22 @@ impl ScreenBuffer {
 }
 
 pub struct RenderState {
-    pub screen: Screen,
-    last_frame: ScreenBuffer,
     current_frame: ScreenBuffer,
-    frame_diff: Vec<bool>
+    frame_diff: Vec<bool>,
+    hard_refresh: bool,
+    last_frame: ScreenBuffer,
+    pub screen: Screen,
 }
 
 impl RenderState {
     fn new(width: u16, height: u16) -> Self {
 
         let mut result = Self {
-            screen: Screen{width, height},
-            last_frame: ScreenBuffer::new(width, height),
             current_frame: ScreenBuffer::new(width, height),
-            frame_diff: Vec::with_capacity((width * height).into())
+            frame_diff: Vec::with_capacity((width * height).into()),
+            hard_refresh: false,
+            last_frame: ScreenBuffer::new(width, height),
+            screen: Screen{width, height},
         };
 
         for _ in 0..result.frame_diff.capacity() {
@@ -384,7 +386,7 @@ fn _print_screen(game: &Game, render_state: &mut RenderState) -> Result<(), std:
     let wrap_point: u16 = render_state.screen.width;
 
     for i in 0..render_state.current_frame.tiles.len() {
-        if !render_state.frame_diff[i] {
+        if !render_state.frame_diff[i] && !render_state.hard_refresh {
             continue;
         }
         let x: u16 = i as u16 % wrap_point;
@@ -399,6 +401,8 @@ fn _print_screen(game: &Game, render_state: &mut RenderState) -> Result<(), std:
         )?;
         render_state.last_frame.set_by_index(i, draw_info);
     }
+
+    render_state.hard_refresh = false;
 
     io::stdout().flush()?;
     Ok(())
@@ -443,6 +447,7 @@ pub fn read_input(game: &mut Game) {
 }
 
 pub fn refresh_back_buffer(render_state: &mut RenderState) {
+    render_state.hard_refresh = true;
     for y in 0..render_state.screen.height {
         for x in 0..render_state.screen.width {
             render_state.current_frame.set_background(x, y, DEFAULT_BACKGROUND);
