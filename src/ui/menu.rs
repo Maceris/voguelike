@@ -1,4 +1,4 @@
-use crate::{constants::{self, NAME_MAX_LENGTH}, tabletop::{Alignment, Class, Race, Stats}};
+use crate::{constants::{self, NAME_MAX_LENGTH}, tabletop::Stats};
 
 type FocusIndex = u16;
 
@@ -24,17 +24,13 @@ impl Dropdown {
     }
 }
 
-impl Focusable for Dropdown {
+impl MenuItem for Dropdown {
     fn get_focus_index(&self) -> FocusIndex {
         return self.focus_index;
     }
 }
 
 pub trait MenuItem {
-    fn get_focus_index(&self) -> FocusIndex;
-}
-
-pub trait Focusable {
     fn get_focus_index(&self) -> FocusIndex;
 }
 
@@ -98,7 +94,7 @@ pub struct TextField {
     pub value: String,
 }
 
-impl Focusable for TextField {
+impl MenuItem for TextField {
     fn get_focus_index(&self) -> FocusIndex {
         return self.focus_index;
     }
@@ -129,7 +125,7 @@ impl CharacterCreation {
                     "Chaotic Evil".to_string(), 
                 ],
                 editing: false,
-                focus_index: 0,
+                focus_index: 3,
                 label: "Alignment".to_string(),
                 selected_item: 0,
                 size: 0,
@@ -150,14 +146,14 @@ impl CharacterCreation {
                     "Wizard".to_string(),
                 ],
                 editing: false,
-                focus_index: 0,
+                focus_index: 1,
                 label: "Class".to_string(),
                 selected_item: 0,
                 size: 0,
             },
             name: TextField {
                 editing: false,
-                focus_index: 1,
+                focus_index: 0,
                 label: "Name".to_string(),
                 max_length: constants::NAME_MAX_LENGTH,
                 value: String::with_capacity(NAME_MAX_LENGTH as usize),
@@ -175,7 +171,7 @@ impl CharacterCreation {
                     "Tiefling".to_string(),
                 ],
                 editing: false,
-                focus_index: 0,
+                focus_index: 2,
                 label: "Race".to_string(),
                 selected_item: 0,
                 size: 0,
@@ -190,6 +186,30 @@ impl CharacterCreation {
                 wisdom: 8
             },
         }
+    }
+}
+
+impl FocusTracking for CharacterCreation {
+    fn get_current_focus_index(&self) -> FocusIndex {
+        //TODO(ches) implement this.
+        return 0;
+    }
+
+    fn get_max_focus_index(&self) -> FocusIndex {
+        //TODO(ches) implement this.
+        return 0;
+    }
+
+    fn next_focus(&mut self) {
+        //TODO(ches) implement this.
+    }
+
+    fn previous_focus(&mut self) {
+        //TODO(ches) implement this.
+    }
+
+    fn wraps_focus() -> bool {
+        return false;
     }
 }
 
@@ -258,7 +278,7 @@ impl TestMenu {
 }
 
 impl FocusTracking for TestMenu {
-    fn get_current_focus_index(&self) -> u16 {
+    fn get_current_focus_index(&self) -> FocusIndex {
         return self.focus_index;
     }
     

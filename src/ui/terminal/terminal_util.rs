@@ -4,7 +4,7 @@ use std::{error::Error, fmt, io::{self, Write}, time::Duration};
 
 use crossterm::style;
 
-use crate::{action::ActionRequest, component::Position, game::{DebugInfo, Game, GameState}, map::Tile, tabletop::Race, ui::menu::{Dropdown, FocusTracking, Focusable, MenuType, TestMenu, TextField}, FRAMES_PER_SECOND};
+use crate::{action::ActionRequest, component::Position, game::{DebugInfo, Game, GameState}, map::Tile, tabletop::Race, ui::menu::{Dropdown, FocusTracking, MenuItem, MenuType, TestMenu, TextField}, FRAMES_PER_SECOND};
 
 use super::{icons, key_mapping};
 
