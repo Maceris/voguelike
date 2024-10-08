@@ -316,6 +316,9 @@ impl MenuNavigation for TestMenu {
                 self.dropdown.selected_item += 1;
             }
         }
+        else if self.focus_index == self.text_field.get_focus_index() && self.text_field.editing {
+            
+        }
         else {
             self.next_focus();
         }
@@ -344,6 +347,9 @@ impl MenuNavigation for TestMenu {
             if self.dropdown.selected_item > 0 {
                 self.dropdown.selected_item -= 1;
             }
+        }
+        else if self.focus_index == self.text_field.get_focus_index() && self.text_field.editing {
+
         }
         else {
             self.previous_focus();
