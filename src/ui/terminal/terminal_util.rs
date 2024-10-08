@@ -4,7 +4,7 @@ use std::{error::Error, fmt, io::{self, Write}, time::Duration};
 
 use crossterm::style;
 
-use crate::{action::ActionRequest, component::Position, game::{DebugInfo, Game, GameState}, map::Tile, tabletop::Race, ui::menu::{Dropdown, FocusTracking, MenuItem, MenuType, TestMenu, TextField}, FRAMES_PER_SECOND};
+use crate::{action::ActionRequest, component::Position, game::{DebugInfo, Game, GameState}, map::Tile, tabletop::Race, ui::menu::{Dropdown, MenuItem, MenuType, TestMenu, TextField}, FRAMES_PER_SECOND};
 
 use super::{icons, key_mapping};
 
@@ -299,21 +299,32 @@ fn draw_test_menu(render_state: &mut RenderState, game: &Game) {
 
     let menu_data: &TestMenu = &game.menu_data.test_menu;
 
-    if menu_data.get_current_focus_index() != menu_data.dropdown.get_focus_index() {
-        draw_dropdown(render_state, &menu_data.dropdown, 2, 2);
+    //TODO(ches) move positioning out of here, to a more generic place
+    for index in 0..menu_data.items.len() {
+        match menu_data.items.get(index).unwrap() {
+            MenuItem::Dropdown(dropdown) => {
+                if !dropdown.editing {
+                    draw_dropdown(render_state, dropdown, 2, 2);
+                }
+            },
+            MenuItem::TextField(text_field) => {
+                if !text_field.editing {
+                    draw_text_field(render_state, text_field, 2, 4);
+                }
+            },
+        };
     }
-    if menu_data.get_current_focus_index() != menu_data.text_field.get_focus_index() {
-        draw_text_field(render_state, &menu_data.text_field, 2, 4);
-    }
-
-    //TODO(ches) make this a generic system to draw the focused item last
-    if menu_data.get_current_focus_index() == menu_data.dropdown.get_focus_index() {
-        draw_dropdown(render_state, &menu_data.dropdown, 2, 2);
-        draw_text(render_state, "*", Color::Yellow, 0, 2);
-    }
-    if menu_data.get_current_focus_index() == menu_data.text_field.get_focus_index() {
-        draw_text_field(render_state, &menu_data.text_field, 2, 4);
-        draw_text(render_state, "*", Color::Yellow, 0, 4);
+    
+    let selected: &MenuItem = game.menu_data.test_menu.get_currently_selected_element();
+    match selected {
+        MenuItem::Dropdown(dropdown) => {
+            draw_dropdown(render_state, dropdown, 2, 2);
+            draw_text(render_state, "*", Color::Yellow, 0, 2);
+        },
+        MenuItem::TextField(text_field) => {
+            draw_text_field(render_state, text_field, 2, 4);
+            draw_text(render_state, "*", Color::Yellow, 0, 4);
+        },
     }
     
 }

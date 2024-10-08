@@ -1,6 +1,6 @@
 use crossterm::event::{KeyCode, KeyEvent};
 
-use crate::{action::{Action, ActionRequest, CloseMenu, Go, NavigateMenu, NewGame, Noun, OpenMenu, Quit}, entity::EntityID, game::{Game, GameState}, new_action, ui::menu::{MenuType, TextField}};
+use crate::{action::{Action, ActionRequest, CloseMenu, Go, NavigateMenu, NewGame, Noun, OpenMenu, Quit}, entity::EntityID, game::{Game, GameState}, new_action, ui::menu::{MenuItem, MenuType}};
 
 pub fn map_input(event: KeyEvent, game: &mut Game) -> Option<ActionRequest> {
     return match game.state {
@@ -110,23 +110,35 @@ fn map_input_test_menu(event: KeyEvent, game: &mut Game) -> Option<ActionRequest
     };
 
     if character.is_some() {
-        let text_field: &mut TextField = &mut game.menu_data.test_menu.text_field;
-        if text_field.editing {
-            if text_field.value.len() < text_field.max_length as usize {
-                text_field.value.push(character.unwrap());
-                return None;
-            }
-        }
+        let element: &mut MenuItem = game.menu_data.test_menu.get_currently_selected_element_mut();
+
+        match element {
+            MenuItem::TextField(text_field) => {
+                if text_field.editing {
+                    if text_field.value.len() < text_field.max_length as usize {
+                        text_field.value.push(character.unwrap());
+                        return None;
+                    }
+                }
+            },
+            _ => {},
+        };
     }
 
     if event.code == KeyCode::Backspace {
-        let text_field: &mut TextField = &mut game.menu_data.test_menu.text_field;
-        if text_field.editing {
-            if text_field.value.len() > 0 {
-                text_field.value.truncate(text_field.value.len() - 1);
-                return None;
-            }
-        }
+        let element: &mut MenuItem = game.menu_data.test_menu.get_currently_selected_element_mut();
+
+        match element {
+            MenuItem::TextField(text_field) => {
+                if text_field.editing {
+                    if text_field.value.len() > 0 {
+                        text_field.value.truncate(text_field.value.len() - 1);
+                        return None;
+                    }
+                }
+            },
+            _ => {},
+        };
     }
 
     let direction = match event.code {

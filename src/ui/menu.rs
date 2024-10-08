@@ -5,13 +5,24 @@ type FocusIndex = u16;
 pub struct Dropdown {
     pub choices: Vec<String>,
     pub editing: bool,
-    focus_index: FocusIndex,
     pub label: String,
     pub selected_item: usize,
     pub size: usize,
 }
 
 impl Dropdown {
+    pub fn new(label:String, choices: Vec<String>) -> Self {
+        let mut result = Self {
+            choices,
+            editing: false,
+            label,
+            selected_item: 0,
+            size: 0,
+        };
+        result.recalculate_size();
+        return result;
+    }
+
     pub fn recalculate_size(&mut self) {
         let mut max: usize = 0; 
         for str in self.choices.iter() {
@@ -24,22 +35,17 @@ impl Dropdown {
     }
 }
 
-impl MenuItem for Dropdown {
-    fn get_focus_index(&self) -> FocusIndex {
-        return self.focus_index;
-    }
-}
-
-pub trait MenuItem {
-    fn get_focus_index(&self) -> FocusIndex;
-}
-
 pub trait FocusTracking {
     fn get_current_focus_index(&self) -> FocusIndex;
     fn get_max_focus_index(&self) -> FocusIndex;
     fn next_focus(&mut self);
     fn previous_focus(&mut self);
     fn wraps_focus() -> bool;
+}
+
+pub enum MenuItem {
+    Dropdown(Dropdown),
+    TextField(TextField)
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -88,16 +94,9 @@ pub struct TableRow {
 
 pub struct TextField {
     pub editing: bool,
-    focus_index: FocusIndex,
     pub label: String,
     pub max_length: u16,
     pub value: String,
-}
-
-impl MenuItem for TextField {
-    fn get_focus_index(&self) -> FocusIndex {
-        return self.focus_index;
-    }
 }
 
 pub struct CharacterCreation {
@@ -125,7 +124,6 @@ impl CharacterCreation {
                     "Chaotic Evil".to_string(), 
                 ],
                 editing: false,
-                focus_index: 3,
                 label: "Alignment".to_string(),
                 selected_item: 0,
                 size: 0,
@@ -146,14 +144,12 @@ impl CharacterCreation {
                     "Wizard".to_string(),
                 ],
                 editing: false,
-                focus_index: 1,
                 label: "Class".to_string(),
                 selected_item: 0,
                 size: 0,
             },
             name: TextField {
                 editing: false,
-                focus_index: 0,
                 label: "Name".to_string(),
                 max_length: constants::NAME_MAX_LENGTH,
                 value: String::with_capacity(NAME_MAX_LENGTH as usize),
@@ -171,7 +167,6 @@ impl CharacterCreation {
                     "Tiefling".to_string(),
                 ],
                 editing: false,
-                focus_index: 2,
                 label: "Race".to_string(),
                 selected_item: 0,
                 size: 0,
@@ -232,49 +227,62 @@ impl MenuNavigation for CharacterCreation {
 }
 
 pub struct TestMenu {
-    pub dropdown: Dropdown,
     focus_index: u16,
-    pub text_field: TextField,
+    pub items: Vec<MenuItem>,
 }
 
 impl TestMenu {
     pub fn new() -> Self {
-        let mut result = Self {
-            dropdown: Dropdown {
-                choices: vec!["Foo".to_string(), 
-                    "Bar".to_string(),
-                    "Double Foo".to_string(),
-                    "Clown Car".to_string(),
-                    "Warlock".to_string(),
-                    "Ternary".to_string(),
-                    "Baz".to_string(),
-                    "Neptune".to_string(),
-                    "Green".to_string()
-                ],
-                editing: false,
-                focus_index: 0,
-                label: "Dropdown".to_string(),
-                selected_item: 0,
-                size: 0,
-            },
-            focus_index: 0,
-            text_field: TextField {
-                editing: false,
-                focus_index: 1,
-                label: "Player Name".to_string(),
-                max_length: constants::NAME_MAX_LENGTH,
-                value: String::with_capacity(NAME_MAX_LENGTH as usize),
-            }
+
+        let dropdown = Dropdown::new("Dropdown".to_string(),  vec!["Foo".to_string(), 
+            "Bar".to_string(),
+            "Double Foo".to_string(),
+            "Clown Car".to_string(),
+            "Warlock".to_string(),
+            "Ternary".to_string(),
+            "Baz".to_string(),
+            "Neptune".to_string(),
+            "Green".to_string()
+        ]);
+
+        let text_field = TextField {
+            editing: false,
+            label: "Player Name".to_string(),
+            max_length: constants::NAME_MAX_LENGTH,
+            value: String::with_capacity(NAME_MAX_LENGTH as usize),
         };
-        result.dropdown.recalculate_size();
+
+        let mut result = Self {
+            focus_index: 0,
+            items: Vec::with_capacity(2),
+        };
+        
+        result.items.push(MenuItem::Dropdown(dropdown));
+        result.items.push(MenuItem::TextField(text_field));
         return result;
     }
     
     pub fn editing_anything(&self) -> bool {
-        // TODO(ches) Generalize this
-        return self.dropdown.editing 
-            || self.text_field.editing;
+        for index in 0..self.items.len() {
+            let editing = match self.items.get(index).unwrap() {
+                MenuItem::Dropdown(dropdown) => dropdown.editing,
+                MenuItem::TextField(text_field) => text_field.editing,
+            };
+            if editing {
+                return true;
+            }
+        }
+        return false;
     }
+
+    pub fn get_currently_selected_element(&self) -> &MenuItem {
+        self.items.get(self.focus_index as usize).unwrap()
+    }
+
+    pub fn get_currently_selected_element_mut(&mut self) -> &mut MenuItem {
+        self.items.get_mut(self.focus_index as usize).unwrap()
+    }
+
 }
 
 impl FocusTracking for TestMenu {
@@ -311,47 +319,57 @@ impl FocusTracking for TestMenu {
 
 impl MenuNavigation for TestMenu {
     fn navigate_menu_down(&mut self) {
-        if self.focus_index == self.dropdown.get_focus_index() && self.dropdown.editing {
-            if self.dropdown.selected_item < self.dropdown.choices.len() - 1 {
-                self.dropdown.selected_item += 1;
-            }
-        }
-        else if self.focus_index == self.text_field.get_focus_index() && self.text_field.editing {
-            
-        }
-        else {
+        let item: &mut MenuItem = self.items.get_mut(self.focus_index as usize).unwrap();
+
+        let handled:bool = match item {
+            MenuItem::Dropdown(dropdown) => {
+                if dropdown.editing {
+                    if dropdown.selected_item < dropdown.choices.len() {
+                        dropdown.selected_item += 1;
+                    }
+                }
+                dropdown.editing
+            },
+            MenuItem::TextField(text_field) => text_field.editing,
+        };
+        if !handled {
             self.next_focus();
         }
     }
     
     fn navigate_menu_in(&mut self) {
-        if self.focus_index == self.dropdown.get_focus_index() {
-            self.dropdown.editing = !self.dropdown.editing;
-        }
-        else if self.focus_index == self.text_field.get_focus_index() {
-            self.text_field.editing = !self.text_field.editing;
-        }
+        let item: &mut MenuItem = self.items.get_mut(self.focus_index as usize).unwrap();
+
+        match item {
+            MenuItem::Dropdown(dropdown) => dropdown.editing = !dropdown.editing,
+            MenuItem::TextField(text_field) => text_field.editing = !text_field.editing,
+        };
     }
     
     fn navigate_menu_out(&mut self) {
-        if self.focus_index == self.dropdown.get_focus_index() {
-            self.dropdown.editing = false;
-        }
-        else if self.focus_index == self.text_field.get_focus_index() {
-            self.text_field.editing = false;
-        }
+        let item: &mut MenuItem = self.items.get_mut(self.focus_index as usize).unwrap();
+
+        match item {
+            MenuItem::Dropdown(dropdown) => dropdown.editing = false,
+            MenuItem::TextField(text_field) => text_field.editing = false,
+        };
     }
 
     fn navigate_menu_up(&mut self) {
-        if self.focus_index == self.dropdown.get_focus_index() && self.dropdown.editing {
-            if self.dropdown.selected_item > 0 {
-                self.dropdown.selected_item -= 1;
-            }
-        }
-        else if self.focus_index == self.text_field.get_focus_index() && self.text_field.editing {
+        let item: &mut MenuItem = self.items.get_mut(self.focus_index as usize).unwrap();
 
-        }
-        else {
+        let handled:bool = match item {
+            MenuItem::Dropdown(dropdown) => {
+                if dropdown.editing {
+                    if dropdown.selected_item > 0 {
+                        dropdown.selected_item -= 1;
+                    }
+                }
+                dropdown.editing
+            },
+            MenuItem::TextField(text_field) => text_field.editing,
+        };
+        if !handled {
             self.previous_focus();
         }
     }
