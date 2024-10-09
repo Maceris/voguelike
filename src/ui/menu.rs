@@ -227,14 +227,15 @@ impl MenuNavigation for CharacterCreation {
 }
 
 pub struct TestMenu {
-    focus_index: u16,
+    focus_index: FocusIndex,
     pub items: Vec<MenuItem>,
 }
 
 impl TestMenu {
     pub fn new() -> Self {
 
-        let dropdown = Dropdown::new("Dropdown".to_string(),  vec!["Foo".to_string(), 
+        let dropdown = Dropdown::new("Dropdown".to_string(),  vec![
+            "Foo".to_string(), 
             "Bar".to_string(),
             "Double Foo".to_string(),
             "Clown Car".to_string(),
@@ -291,7 +292,7 @@ impl FocusTracking for TestMenu {
     }
     
     fn get_max_focus_index(&self) -> FocusIndex {
-        return 1;   
+        return self.items.len() as FocusIndex - 1;
     }
     
     fn next_focus(&mut self) {

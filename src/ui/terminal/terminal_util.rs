@@ -6,7 +6,7 @@ use crossterm::style;
 
 use crate::{action::ActionRequest, component::Position, game::{DebugInfo, Game, GameState}, map::Tile, tabletop::Race, ui::menu::{Dropdown, MenuItem, MenuType, TestMenu, TextField}, FRAMES_PER_SECOND};
 
-use super::{icons, key_mapping};
+use super::{icons, key_mapping, menu_offsets::test_window};
 
 pub const MIN_WIDTH: u16 = 80;
 pub const MIN_HEIGHT: u16 = 24;
@@ -290,8 +290,6 @@ fn draw_text_field(render_state: &mut RenderState, text_field: &TextField, x: u1
         render_state.current_frame.set_color(position as u16 + current_size as u16 + content_x, y, foreground);
         render_state.current_frame.set_icon(position as u16 + current_size as u16 + content_x, y, ' ');
     }
-
-    //TODO(ches) add editing
 }
 
 fn draw_test_menu(render_state: &mut RenderState, game: &Game) {
@@ -304,12 +302,12 @@ fn draw_test_menu(render_state: &mut RenderState, game: &Game) {
         match menu_data.items.get(index).unwrap() {
             MenuItem::Dropdown(dropdown) => {
                 if !dropdown.editing {
-                    draw_dropdown(render_state, dropdown, 2, 2);
+                    draw_dropdown(render_state, dropdown, test_window::DROPDOWN.x, test_window::DROPDOWN.y);
                 }
             },
             MenuItem::TextField(text_field) => {
                 if !text_field.editing {
-                    draw_text_field(render_state, text_field, 2, 4);
+                    draw_text_field(render_state, text_field, test_window::TEXT_FIELD.x, test_window::TEXT_FIELD.y);
                 }
             },
         };
@@ -318,12 +316,12 @@ fn draw_test_menu(render_state: &mut RenderState, game: &Game) {
     let selected: &MenuItem = game.menu_data.test_menu.get_currently_selected_element();
     match selected {
         MenuItem::Dropdown(dropdown) => {
-            draw_dropdown(render_state, dropdown, 2, 2);
-            draw_text(render_state, "*", Color::Yellow, 0, 2);
+            draw_dropdown(render_state, dropdown, test_window::DROPDOWN.x, test_window::DROPDOWN.y);
+            draw_text(render_state, "*", Color::Yellow, test_window::DROPDOWN.x - 2, test_window::DROPDOWN.y);
         },
         MenuItem::TextField(text_field) => {
-            draw_text_field(render_state, text_field, 2, 4);
-            draw_text(render_state, "*", Color::Yellow, 0, 4);
+            draw_text_field(render_state, text_field, test_window::TEXT_FIELD.x, test_window::TEXT_FIELD.y);
+            draw_text(render_state, "*", Color::Yellow, test_window::TEXT_FIELD.x - 2, test_window::TEXT_FIELD.y);
         },
     }
     
