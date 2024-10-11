@@ -98,6 +98,8 @@ pub enum Stat {
     Wisdom,
 }
 
+pub const NUMBER_OF_STATS: usize = 6;
+
 pub struct Stats {
     pub charisma: u8,
     pub constitution: u8,

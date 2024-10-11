@@ -305,6 +305,9 @@ fn draw_test_menu(render_state: &mut RenderState, game: &Game) {
                     draw_dropdown(render_state, dropdown, test_window::DROPDOWN.x, test_window::DROPDOWN.y);
                 }
             },
+            MenuItem::PointBuy(point_buy) => {
+                //TODO(ches) draw point buy
+            }
             MenuItem::TextField(text_field) => {
                 if !text_field.editing {
                     draw_text_field(render_state, text_field, test_window::TEXT_FIELD.x, test_window::TEXT_FIELD.y);
@@ -319,6 +322,9 @@ fn draw_test_menu(render_state: &mut RenderState, game: &Game) {
             draw_dropdown(render_state, dropdown, test_window::DROPDOWN.x, test_window::DROPDOWN.y);
             draw_text(render_state, "*", Color::Yellow, test_window::DROPDOWN.x - 2, test_window::DROPDOWN.y);
         },
+        MenuItem::PointBuy(point_buy) => {
+            //TODO(ches) draw point buy
+        }
         MenuItem::TextField(text_field) => {
             draw_text_field(render_state, text_field, test_window::TEXT_FIELD.x, test_window::TEXT_FIELD.y);
             draw_text(render_state, "*", Color::Yellow, test_window::TEXT_FIELD.x - 2, test_window::TEXT_FIELD.y);

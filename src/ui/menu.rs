@@ -1,6 +1,6 @@
-use crate::{constants::{self, NAME_MAX_LENGTH}, tabletop::Stats};
+use crate::{constants::{self, NAME_MAX_LENGTH}, tabletop::{self, Stats}, ui::menu_focus};
 
-type FocusIndex = u16;
+use super::menu_focus::{FocusIndex, FocusTracking};
 
 pub struct Dropdown {
     pub choices: Vec<String>,
@@ -35,17 +35,10 @@ impl Dropdown {
     }
 }
 
-pub trait FocusTracking {
-    fn get_current_focus_index(&self) -> FocusIndex;
-    fn get_max_focus_index(&self) -> FocusIndex;
-    fn next_focus(&mut self);
-    fn previous_focus(&mut self);
-    fn wraps_focus() -> bool;
-}
-
 pub enum MenuItem {
     Dropdown(Dropdown),
-    TextField(TextField)
+    PointBuy(PointBuy),
+    TextField(TextField),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -78,6 +71,12 @@ impl MenuData {
     }
 }
 
+pub struct PointBuy {
+    internal_focus: FocusIndex,
+    pub stat_points: u8,
+    pub stats: Stats,
+}
+
 pub struct TabMenu {
     pub tabs: Vec<String>,
     pub selected_tab: u8, 
@@ -104,8 +103,7 @@ pub struct CharacterCreation {
     pub class: Dropdown,
     pub name: TextField,
     pub race: Dropdown,
-    pub stat_points: u8,
-    pub stats: Stats,
+    pub stats: PointBuy,
 }
 
 impl CharacterCreation {
@@ -171,14 +169,17 @@ impl CharacterCreation {
                 selected_item: 0,
                 size: 0,
             },
-            stat_points: 27,
-            stats: Stats {
-                charisma: 8,
-                constitution: 8,
-                dexterity: 8,
-                intelligence: 8,
-                strength: 8,
-                wisdom: 8
+            stats: PointBuy {
+                internal_focus: 0,
+                stat_points: 27,
+                stats: Stats {
+                    charisma: 8,
+                    constitution: 8,
+                    dexterity: 8,
+                    intelligence: 8,
+                    strength: 8,
+                    wisdom: 8
+                },
             },
         }
     }
@@ -260,6 +261,7 @@ impl TestMenu {
         
         result.items.push(MenuItem::Dropdown(dropdown));
         result.items.push(MenuItem::TextField(text_field));
+
         return result;
     }
     
@@ -267,6 +269,7 @@ impl TestMenu {
         for index in 0..self.items.len() {
             let editing = match self.items.get(index).unwrap() {
                 MenuItem::Dropdown(dropdown) => dropdown.editing,
+                MenuItem::PointBuy(_) => false,
                 MenuItem::TextField(text_field) => text_field.editing,
             };
             if editing {
@@ -331,6 +334,14 @@ impl MenuNavigation for TestMenu {
                 }
                 dropdown.editing
             },
+            MenuItem::PointBuy(point_buy) => {
+                let mut result = false;
+                if point_buy.internal_focus < tabletop::NUMBER_OF_STATS as u16 - 1 {
+                    point_buy.internal_focus += 1;
+                    result = true;
+                }
+                result
+            },
             MenuItem::TextField(text_field) => text_field.editing,
         };
         if !handled {
@@ -343,6 +354,7 @@ impl MenuNavigation for TestMenu {
 
         match item {
             MenuItem::Dropdown(dropdown) => dropdown.editing = !dropdown.editing,
+            MenuItem::PointBuy(_) => (),
             MenuItem::TextField(text_field) => text_field.editing = !text_field.editing,
         };
     }
@@ -352,6 +364,7 @@ impl MenuNavigation for TestMenu {
 
         match item {
             MenuItem::Dropdown(dropdown) => dropdown.editing = false,
+            MenuItem::PointBuy(_) => (),
             MenuItem::TextField(text_field) => text_field.editing = false,
         };
     }
@@ -367,6 +380,14 @@ impl MenuNavigation for TestMenu {
                     }
                 }
                 dropdown.editing
+            },
+            MenuItem::PointBuy(point_buy) => {
+                let mut result = false;
+                if point_buy.internal_focus > 0 {
+                    point_buy.internal_focus -= 1;
+                    result = true;
+                }
+                result
             },
             MenuItem::TextField(text_field) => text_field.editing,
         };
