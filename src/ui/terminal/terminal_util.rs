@@ -250,9 +250,19 @@ fn draw_main_menu(render_state: &mut RenderState, _game: &Game) {
 
 fn draw_point_buy(render_state: &mut RenderState, focused: bool, point_buy: &PointBuy, x: u16, y: u16) {
     for y_offset in 0..tabletop::NUMBER_OF_STATS {
-        draw_text(render_state, "<", DEFAULT_FOREGROUND, x, y + y_offset as u16);
-        draw_text(render_state, ">", DEFAULT_FOREGROUND, x + 3, y + y_offset as u16);
+        draw_text(render_state, "<", DEFAULT_FOREGROUND, x + 13, y + y_offset as u16);
+        draw_text(render_state, ">", DEFAULT_FOREGROUND, x + 16, y + y_offset as u16);
     }
+
+    let points = format!("Points left: {}", point_buy.stat_points);
+
+    draw_text(render_state, "Charisma", DEFAULT_FOREGROUND, x, y);
+    draw_text(render_state, "Constitution", DEFAULT_FOREGROUND, x, y + 1);
+    draw_text(render_state, "Dexterity", DEFAULT_FOREGROUND, x, y + 2);
+    draw_text(render_state, "Intelligence", DEFAULT_FOREGROUND, x, y + 3);
+    draw_text(render_state, "Strength", DEFAULT_FOREGROUND, x, y + 4);
+    draw_text(render_state, "Wisdom", DEFAULT_FOREGROUND, x, y + 5);
+    draw_text(render_state, &points, DEFAULT_FOREGROUND, x, y + 6);
 
     let charisma = format!("{:>2}", point_buy.stats.charisma);
     let constitution = format!("{:>2}", point_buy.stats.constitution);
@@ -260,8 +270,6 @@ fn draw_point_buy(render_state: &mut RenderState, focused: bool, point_buy: &Poi
     let intelligence = format!("{:>2}", point_buy.stats.intelligence);
     let strength = format!("{:>2}", point_buy.stats.strength);
     let wisdom = format!("{:>2}", point_buy.stats.wisdom);
-
-    let points = format!("Points left: {}", point_buy.stat_points);
 
     let charisma_background = if focused && point_buy.internal_focus == 0 { DEFAULT_FOREGROUND } else { DEFAULT_BACKGROUND };
     let constitution_background = if focused && point_buy.internal_focus == 1 { DEFAULT_FOREGROUND } else { DEFAULT_BACKGROUND };
@@ -277,20 +285,12 @@ fn draw_point_buy(render_state: &mut RenderState, focused: bool, point_buy: &Poi
     let strength_foreground = if focused && point_buy.internal_focus == 4 { DEFAULT_BACKGROUND } else { DEFAULT_FOREGROUND };
     let wisdom_foreground = if focused && point_buy.internal_focus == 5 { DEFAULT_BACKGROUND } else { DEFAULT_FOREGROUND };
 
-    draw_text_with_background(render_state, &charisma, charisma_background, charisma_foreground, x+1, y);
-    draw_text_with_background(render_state, &constitution, constitution_background, constitution_foreground, x+1, y+1);
-    draw_text_with_background(render_state, &dexterity, dexterity_background, dexterity_foreground, x+1, y+2);
-    draw_text_with_background(render_state, &intelligence, intelligence_background, intelligence_foreground, x+1, y+3);
-    draw_text_with_background(render_state, &strength, strength_background, strength_foreground, x+1, y+4);
-    draw_text_with_background(render_state, &wisdom, wisdom_background, wisdom_foreground, x+1, y+5);
-
-    draw_text(render_state, "Charisma", DEFAULT_FOREGROUND, x+5, y);
-    draw_text(render_state, "Constitution", DEFAULT_FOREGROUND, x+5, y+1);
-    draw_text(render_state, "Dexterity", DEFAULT_FOREGROUND, x+5, y+2);
-    draw_text(render_state, "Intelligence", DEFAULT_FOREGROUND, x+5, y+3);
-    draw_text(render_state, "Strength", DEFAULT_FOREGROUND, x+5, y+4);
-    draw_text(render_state, "Wisdom", DEFAULT_FOREGROUND, x+5, y+5);
-    draw_text(render_state, &points, DEFAULT_FOREGROUND, x, y+6);
+    draw_text_with_background(render_state, &charisma, charisma_background, charisma_foreground, x + 14, y);
+    draw_text_with_background(render_state, &constitution, constitution_background, constitution_foreground, x + 14, y + 1);
+    draw_text_with_background(render_state, &dexterity, dexterity_background, dexterity_foreground, x + 14, y + 2);
+    draw_text_with_background(render_state, &intelligence, intelligence_background, intelligence_foreground, x + 14, y + 3);
+    draw_text_with_background(render_state, &strength, strength_background, strength_foreground, x + 14, y + 4);
+    draw_text_with_background(render_state, &wisdom, wisdom_background, wisdom_foreground, x + 14, y + 5);
     
 }
 
