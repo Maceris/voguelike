@@ -53,7 +53,9 @@ pub enum MenuType {
 pub trait MenuNavigation {
     fn navigate_menu_down(&mut self);
     fn navigate_menu_in(&mut self);
+    fn navigate_menu_left(&mut self);
     fn navigate_menu_out(&mut self);
+    fn navigate_menu_right(&mut self);
     fn navigate_menu_up(&mut self);
 }
 
@@ -81,14 +83,14 @@ impl PointBuy {
     pub fn new() -> Self {
         Self {
             internal_focus: 0,
-            stat_points: 27,
+            stat_points: tabletop::POINT_BUY_POINTS,
             stats: Stats {
-                charisma: 8,
-                constitution: 8,
-                dexterity: 8,
-                intelligence: 8,
-                strength: 8,
-                wisdom: 8
+                charisma: tabletop::POINT_BUY_MIN,
+                constitution: tabletop::POINT_BUY_MIN,
+                dexterity: tabletop::POINT_BUY_MIN,
+                intelligence: tabletop::POINT_BUY_MIN,
+                strength: tabletop::POINT_BUY_MIN,
+                wisdom: tabletop::POINT_BUY_MIN
             },
         }
     }
@@ -224,7 +226,15 @@ impl MenuNavigation for CharacterCreation {
         //TODO(ches) implement this
     }
 
+    fn navigate_menu_left(&mut self) {
+        //TODO(ches) implement this
+    }
+
     fn navigate_menu_out(&mut self) {
+        //TODO(ches) implement this
+    }
+
+    fn navigate_menu_right(&mut self) {
         //TODO(ches) implement this
     }
 
@@ -367,6 +377,27 @@ impl MenuNavigation for TestMenu {
             MenuItem::TextField(text_field) => text_field.editing = !text_field.editing,
         };
     }
+
+    fn navigate_menu_left(&mut self) {
+        let item: &mut MenuItem = self.items.get_mut(self.focus_index as usize).unwrap();
+
+        match item {
+            MenuItem::PointBuy(point_buy) => {
+                let mut fallback: u8 = 0;
+                let stat: &mut u8 = match point_buy.internal_focus {
+                    0 => &mut point_buy.stats.charisma,
+                    1 => &mut point_buy.stats.constitution,
+                    2 => &mut point_buy.stats.dexterity,
+                    3 => &mut point_buy.stats.intelligence,
+                    4 => &mut point_buy.stats.strength,
+                    5 => &mut point_buy.stats.wisdom,
+                    _ => &mut fallback
+                };
+                tabletop::point_buy_attempt_decrease(stat, &mut point_buy.stat_points);
+            },
+            _ => ()
+        };
+    }
     
     fn navigate_menu_out(&mut self) {
         let item: &mut MenuItem = self.items.get_mut(self.focus_index as usize).unwrap();
@@ -375,6 +406,27 @@ impl MenuNavigation for TestMenu {
             MenuItem::Dropdown(dropdown) => dropdown.editing = false,
             MenuItem::PointBuy(_) => (),
             MenuItem::TextField(text_field) => text_field.editing = false,
+        };
+    }
+
+    fn navigate_menu_right(&mut self) {
+        let item: &mut MenuItem = self.items.get_mut(self.focus_index as usize).unwrap();
+
+        match item {
+            MenuItem::PointBuy(point_buy) => {
+                let mut fallback: u8 = 0;
+                let stat: &mut u8 = match point_buy.internal_focus {
+                    0 => &mut point_buy.stats.charisma,
+                    1 => &mut point_buy.stats.constitution,
+                    2 => &mut point_buy.stats.dexterity,
+                    3 => &mut point_buy.stats.intelligence,
+                    4 => &mut point_buy.stats.strength,
+                    5 => &mut point_buy.stats.wisdom,
+                    _ => &mut fallback
+                };
+                tabletop::point_buy_attempt_increase(stat, &mut point_buy.stat_points);
+            },
+            _ => ()
         };
     }
 

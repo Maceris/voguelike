@@ -109,20 +109,6 @@ pub struct Stats {
     pub wisdom: u8
 }
 
-pub fn modifier(ability: u8) -> i8 {
-    return (ability as i8 / 2) - 5;
-}
-
-pub fn passive_score(modifiers: i8, advantage: AdvantageStatus) -> i8 {
-    let advantage_mod: i8 = match advantage {
-        AdvantageStatus::Advantage => 5,
-        AdvantageStatus::Normal=> 0,
-        AdvantageStatus::Disadvantage => -5
-    };
-
-    return 10 + modifiers + advantage_mod;
-}
-
 pub fn carrying_capacity(strength: u8, size: Size) -> u16 {
     let total: u16 = strength as u16 * 15;
 
@@ -134,6 +120,10 @@ pub fn carrying_capacity(strength: u8, size: Size) -> u16 {
         Size::Huge => total * 4,
         Size::Gargantuan => total * 8
     }
+}
+
+pub fn modifier(ability: u8) -> i8 {
+    return (ability as i8 / 2) - 5;
 }
 
 pub fn move_capacity(strength: u8, size: Size) -> u16 {
@@ -149,6 +139,45 @@ pub fn move_capacity(strength: u8, size: Size) -> u16 {
         Size::Huge => total * 8,
         Size::Gargantuan => total * 16
     }
+}
+
+pub fn passive_score(modifiers: i8, advantage: AdvantageStatus) -> i8 {
+    let advantage_mod: i8 = match advantage {
+        AdvantageStatus::Advantage => 5,
+        AdvantageStatus::Normal=> 0,
+        AdvantageStatus::Disadvantage => -5
+    };
+
+    return 10 + modifiers + advantage_mod;
+}
+
+const POINT_BUY_MAX: u8 = 15;
+pub const POINT_BUY_MIN: u8 = 8;
+pub const POINT_BUY_POINTS: u8 = 27;
+
+fn point_buy_cost(stat: u8) -> u8 {
+    return if stat >= 14 { 2 } else { 1 }
+}
+
+pub fn point_buy_attempt_decrease(stat: &mut u8, points_left: &mut u8) {
+    if *stat <= POINT_BUY_MIN {
+        return;
+    }
+    let cost = point_buy_cost(*stat);
+    *points_left += cost;
+    *stat -= 1;
+}
+
+pub fn point_buy_attempt_increase(stat: &mut u8, points_left: &mut u8) {
+    if *stat >= POINT_BUY_MAX {
+        return;
+    }
+    let cost = point_buy_cost(*stat + 1);
+    if cost > *points_left {
+        return;
+    }
+    *points_left -= cost;
+    *stat += 1;
 }
 
 pub fn skill_stat(skill: Skill) -> Stat {

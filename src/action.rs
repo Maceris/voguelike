@@ -418,6 +418,12 @@ impl ActionRoutine for NavigateMenu {
         else if direction == game.special_entities.down {
             menu_data.navigate_menu_in();
         }
+        else if direction == game.special_entities.east {
+            menu_data.navigate_menu_right();
+        }
+        else if direction == game.special_entities.west {
+            menu_data.navigate_menu_left();
+        }
 
         return false;
     }
