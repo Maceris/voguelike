@@ -72,9 +72,26 @@ impl MenuData {
 }
 
 pub struct PointBuy {
-    internal_focus: FocusIndex,
+    pub internal_focus: FocusIndex,
     pub stat_points: u8,
     pub stats: Stats,
+}
+
+impl PointBuy {
+    pub fn new() -> Self {
+        Self {
+            internal_focus: 0,
+            stat_points: 27,
+            stats: Stats {
+                charisma: 8,
+                constitution: 8,
+                dexterity: 8,
+                intelligence: 8,
+                strength: 8,
+                wisdom: 8
+            },
+        }
+    }
 }
 
 pub struct TabMenu {
@@ -169,18 +186,7 @@ impl CharacterCreation {
                 selected_item: 0,
                 size: 0,
             },
-            stats: PointBuy {
-                internal_focus: 0,
-                stat_points: 27,
-                stats: Stats {
-                    charisma: 8,
-                    constitution: 8,
-                    dexterity: 8,
-                    intelligence: 8,
-                    strength: 8,
-                    wisdom: 8
-                },
-            },
+            stats: PointBuy::new(),
         }
     }
 }
@@ -254,13 +260,16 @@ impl TestMenu {
             value: String::with_capacity(NAME_MAX_LENGTH as usize),
         };
 
+        let point_buy = PointBuy::new();
+
         let mut result = Self {
             focus_index: 0,
-            items: Vec::with_capacity(2),
+            items: Vec::with_capacity(3),
         };
-        
+
         result.items.push(MenuItem::Dropdown(dropdown));
         result.items.push(MenuItem::TextField(text_field));
+        result.items.push(MenuItem::PointBuy(point_buy));
 
         return result;
     }

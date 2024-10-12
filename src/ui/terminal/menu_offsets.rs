@@ -14,5 +14,6 @@ pub mod test_window {
     use super::Offset;
 
     pub const DROPDOWN: Offset = Offset::new(2, 2);
-    pub const TEXT_FIELD: Offset = Offset::new(2, 4);
+    pub const TEXT_FIELD: Offset = Offset::new(2, 3);
+    pub const POINT_BUY: Offset = Offset::new(0, 4);
 }

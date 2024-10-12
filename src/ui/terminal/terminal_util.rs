@@ -4,7 +4,7 @@ use std::{error::Error, fmt, io::{self, Write}, time::Duration};
 
 use crossterm::style;
 
-use crate::{action::ActionRequest, component::Position, game::{DebugInfo, Game, GameState}, map::Tile, tabletop::Race, ui::menu::{Dropdown, MenuItem, MenuType, TestMenu, TextField}, FRAMES_PER_SECOND};
+use crate::{action::ActionRequest, component::Position, game::{DebugInfo, Game, GameState}, map::Tile, tabletop::{self, Race}, ui::menu::{Dropdown, MenuItem, MenuType, PointBuy, TestMenu, TextField}, FRAMES_PER_SECOND};
 
 use super::{icons, key_mapping, menu_offsets::test_window};
 
@@ -12,7 +12,7 @@ pub const MIN_WIDTH: u16 = 80;
 pub const MIN_HEIGHT: u16 = 24;
 
 const DEFAULT_BACKGROUND: Color = Color::Black;
-const DEFAULT_FOREGROUND: Color= Color::White;
+const DEFAULT_FOREGROUND: Color = Color::White;
 
 macro_rules! panic_on_error {
     ($expression:expr) => {
@@ -248,6 +248,52 @@ fn draw_main_menu(render_state: &mut RenderState, _game: &Game) {
     draw_text(render_state, "Test Menu", Color::White, 5, 3);
 }
 
+fn draw_point_buy(render_state: &mut RenderState, focused: bool, point_buy: &PointBuy, x: u16, y: u16) {
+    for y_offset in 0..tabletop::NUMBER_OF_STATS {
+        draw_text(render_state, "<", DEFAULT_FOREGROUND, x, y + y_offset as u16);
+        draw_text(render_state, ">", DEFAULT_FOREGROUND, x + 3, y + y_offset as u16);
+    }
+
+    let charisma = format!("{:>2}", point_buy.stats.charisma);
+    let constitution = format!("{:>2}", point_buy.stats.constitution);
+    let dexterity = format!("{:>2}", point_buy.stats.dexterity);
+    let intelligence = format!("{:>2}", point_buy.stats.intelligence);
+    let strength = format!("{:>2}", point_buy.stats.strength);
+    let wisdom = format!("{:>2}", point_buy.stats.wisdom);
+
+    let points = format!("Points left: {}", point_buy.stat_points);
+
+    let charisma_background = if focused && point_buy.internal_focus == 0 { DEFAULT_FOREGROUND } else { DEFAULT_BACKGROUND };
+    let constitution_background = if focused && point_buy.internal_focus == 1 { DEFAULT_FOREGROUND } else { DEFAULT_BACKGROUND };
+    let dexterity_background = if focused && point_buy.internal_focus == 2 { DEFAULT_FOREGROUND } else { DEFAULT_BACKGROUND };
+    let intelligence_background = if focused && point_buy.internal_focus == 3 { DEFAULT_FOREGROUND } else { DEFAULT_BACKGROUND };
+    let strength_background = if focused && point_buy.internal_focus == 4 { DEFAULT_FOREGROUND } else { DEFAULT_BACKGROUND };
+    let wisdom_background = if focused && point_buy.internal_focus == 5 { DEFAULT_FOREGROUND } else { DEFAULT_BACKGROUND };
+
+    let charisma_foreground = if focused && point_buy.internal_focus == 0 { DEFAULT_BACKGROUND } else { DEFAULT_FOREGROUND };
+    let constitution_foreground = if focused && point_buy.internal_focus == 1 { DEFAULT_BACKGROUND } else { DEFAULT_FOREGROUND };
+    let dexterity_foreground = if focused && point_buy.internal_focus == 2 { DEFAULT_BACKGROUND } else { DEFAULT_FOREGROUND };
+    let intelligence_foreground = if focused && point_buy.internal_focus == 3 { DEFAULT_BACKGROUND } else { DEFAULT_FOREGROUND };
+    let strength_foreground = if focused && point_buy.internal_focus == 4 { DEFAULT_BACKGROUND } else { DEFAULT_FOREGROUND };
+    let wisdom_foreground = if focused && point_buy.internal_focus == 5 { DEFAULT_BACKGROUND } else { DEFAULT_FOREGROUND };
+
+    draw_text_with_background(render_state, &charisma, charisma_background, charisma_foreground, x+1, y);
+    draw_text_with_background(render_state, &constitution, constitution_background, constitution_foreground, x+1, y+1);
+    draw_text_with_background(render_state, &dexterity, dexterity_background, dexterity_foreground, x+1, y+2);
+    draw_text_with_background(render_state, &intelligence, intelligence_background, intelligence_foreground, x+1, y+3);
+    draw_text_with_background(render_state, &strength, strength_background, strength_foreground, x+1, y+4);
+    draw_text_with_background(render_state, &wisdom, wisdom_background, wisdom_foreground, x+1, y+5);
+
+    draw_text(render_state, "Charisma", DEFAULT_FOREGROUND, x+5, y);
+    draw_text(render_state, "Constitution", DEFAULT_FOREGROUND, x+5, y+1);
+    draw_text(render_state, "Dexterity", DEFAULT_FOREGROUND, x+5, y+2);
+    draw_text(render_state, "Intelligence", DEFAULT_FOREGROUND, x+5, y+3);
+    draw_text(render_state, "Strength", DEFAULT_FOREGROUND, x+5, y+4);
+    draw_text(render_state, "Wisdom", DEFAULT_FOREGROUND, x+5, y+5);
+    draw_text(render_state, &points, DEFAULT_FOREGROUND, x, y+6);
+    
+}
+
 fn draw_fps_counter(render_state: &mut RenderState, game: &Game) {
     let fps: u32 = u32::max(1, get_average_fps(&game.debug_info));
 
@@ -297,7 +343,6 @@ fn draw_test_menu(render_state: &mut RenderState, game: &Game) {
 
     let menu_data: &TestMenu = &game.menu_data.test_menu;
 
-    //TODO(ches) move positioning out of here, to a more generic place
     for index in 0..menu_data.items.len() {
         match menu_data.items.get(index).unwrap() {
             MenuItem::Dropdown(dropdown) => {
@@ -306,7 +351,7 @@ fn draw_test_menu(render_state: &mut RenderState, game: &Game) {
                 }
             },
             MenuItem::PointBuy(point_buy) => {
-                //TODO(ches) draw point buy
+                draw_point_buy(render_state, false, point_buy, test_window::POINT_BUY.x, test_window::POINT_BUY.y);
             }
             MenuItem::TextField(text_field) => {
                 if !text_field.editing {
@@ -323,7 +368,7 @@ fn draw_test_menu(render_state: &mut RenderState, game: &Game) {
             draw_text(render_state, "*", Color::Yellow, test_window::DROPDOWN.x - 2, test_window::DROPDOWN.y);
         },
         MenuItem::PointBuy(point_buy) => {
-            //TODO(ches) draw point buy
+            draw_point_buy(render_state, true, point_buy, test_window::POINT_BUY.x, test_window::POINT_BUY.y);
         }
         MenuItem::TextField(text_field) => {
             draw_text_field(render_state, text_field, test_window::TEXT_FIELD.x, test_window::TEXT_FIELD.y);

@@ -10,5 +10,6 @@ pub trait FocusTracking {
 
 pub mod test_window {
     pub const DROPDOWN: usize = 0;
-    pub const TEXT_FIELD: usize = 1; 
+    pub const TEXT_FIELD: usize = 1;
+    pub const POINT_BUY: usize = 2; 
 }
