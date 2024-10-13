@@ -1,4 +1,6 @@
-use crate::{constants::{self, NAME_MAX_LENGTH}, tabletop::{self, Stats}, ui::menu_focus};
+use strum::IntoEnumIterator;
+
+use crate::{constants::{self, NAME_MAX_LENGTH}, tabletop::{self, Alignment, Class, Race, Stats}, ui::menu_focus};
 
 use super::menu_focus::{FocusIndex, FocusTracking};
 
@@ -129,37 +131,14 @@ impl CharacterCreation {
     pub fn new() -> Self {
         Self {
             alignment: Dropdown {
-                choices: vec![
-                    "Lawful Good".to_string(),
-                    "Neutral Good".to_string(),
-                    "Chaotic Good".to_string(),
-                    "Lawful Neutral".to_string(),
-                    "Neutral".to_string(),
-                    "Chaotic Neutral".to_string(),
-                    "Lawful Evil".to_string(),
-                    "Neutral Evil".to_string(),
-                    "Chaotic Evil".to_string(), 
-                ],
+                choices: Alignment::iter().map(|val| val.to_string()).collect(),
                 editing: false,
                 label: "Alignment".to_string(),
                 selected_item: 0,
                 size: 0,
             },
             class: Dropdown {
-                choices: vec![
-                    "Barbarian".to_string(),
-                    "Bard".to_string(),
-                    "Cleric".to_string(),
-                    "Druid".to_string(),
-                    "Fighter".to_string(),
-                    "Monk".to_string(),
-                    "Paladin".to_string(),
-                    "Ranger".to_string(),
-                    "Rogue".to_string(),
-                    "Sorcerer".to_string(),
-                    "Warlock".to_string(),
-                    "Wizard".to_string(),
-                ],
+                choices: Class::iter().map(|val| val.to_string()).collect(),
                 editing: false,
                 label: "Class".to_string(),
                 selected_item: 0,
@@ -172,17 +151,7 @@ impl CharacterCreation {
                 value: String::with_capacity(NAME_MAX_LENGTH as usize),
             },
             race: Dropdown {
-                choices: vec![
-                    "Dragonborn".to_string(),
-                    "Dwarf".to_string(),
-                    "Elf".to_string(),
-                    "Gnome".to_string(),
-                    "HalfElf".to_string(),
-                    "HalfOrc".to_string(),
-                    "Halfling".to_string(),
-                    "Human".to_string(),
-                    "Tiefling".to_string(),
-                ],
+                choices: Race::iter().map(|val| val.to_string()).collect(),
                 editing: false,
                 label: "Race".to_string(),
                 selected_item: 0,

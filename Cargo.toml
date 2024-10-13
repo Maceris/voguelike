@@ -8,3 +8,5 @@ crossterm = "0.28.1"
 enum-map = "2.7.3"
 ringbuffer = "0.15.0"
 traits = { path = "traits" }
+strum = "0.26.3"
+strum_macros = "0.26.4"

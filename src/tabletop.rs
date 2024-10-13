@@ -1,9 +1,17 @@
+use std::str::FromStr;
+
+use strum_macros::EnumIter;
+
+#[derive(Debug, PartialEq, Eq)]
+pub struct FromStringError;
+
 pub enum AdvantageStatus {
     Advantage,
     Normal,
     Disadvantage
 }
 
+#[derive(Debug, EnumIter)]
 pub enum Alignment {
     ChaoticEvil,
     ChaoticGood,
@@ -16,6 +24,43 @@ pub enum Alignment {
     NeutralGood,
 }
 
+
+impl ToString for Alignment {
+    fn to_string(&self) -> String {
+        match self {
+            Alignment::ChaoticEvil => String::from("Chaotic Evil"),
+            Alignment::ChaoticGood => String::from("Chaotic Good"),
+            Alignment::ChaoticNeutral => String::from("Chaotic Neutral"),
+            Alignment::LawfulEvil => String::from("Lawful Evil"),
+            Alignment::LawfulGood => String::from("Lawful Good"),
+            Alignment::LawfulNeutral => String::from("Lawful Neutral"),
+            Alignment::Neutral => String::from("Neutral"),
+            Alignment::NeutralEvil => String::from("Neutral Evil"),
+            Alignment::NeutralGood => String::from("Neutral Good"),
+        }
+    }
+}
+
+impl FromStr for Alignment {
+    type Err = FromStringError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "Chaotic Evil" => Ok(Alignment::ChaoticEvil),
+            "Chaotic Good" => Ok(Alignment::ChaoticGood),
+            "Chaotic Neutral" => Ok(Alignment::ChaoticNeutral),
+            "Lawful Evil" => Ok(Alignment::LawfulEvil),
+            "Lawful Good" => Ok(Alignment::LawfulGood),
+            "Lawful Neutral" => Ok(Alignment::LawfulNeutral),
+            "Neutral" => Ok(Alignment::Neutral),
+            "Neutral Evil" => Ok(Alignment::NeutralEvil),
+            "Neutral Good" => Ok(Alignment::NeutralGood),
+            _ => Err(FromStringError)
+        }
+    }
+}
+
+#[derive(Debug, EnumIter)]
 pub enum Class {
     Barbarian,
     Bard,
@@ -28,7 +73,48 @@ pub enum Class {
     Rogue,
     Sorcerer,
     Warlock,
-    Wizard
+    Wizard,
+}
+
+impl ToString for Class {
+    fn to_string(&self) -> String {
+        match self {
+            Class::Barbarian => String::from("Barbarian"),
+            Class::Bard => String::from("Bard"),
+            Class::Cleric => String::from("Cleric"),
+            Class::Druid => String::from("Druid"),
+            Class::Fighter => String::from("Fighter"),
+            Class::Monk => String::from("Monk"),
+            Class::Paladin => String::from("Paladin"),
+            Class::Ranger => String::from("Ranger"),
+            Class::Rogue => String::from("Rogue"),
+            Class::Sorcerer => String::from("Sorcerer"),
+            Class::Warlock => String::from("Warlock"),
+            Class::Wizard => String::from("Wizard"),
+        }
+    }
+}
+
+impl FromStr for Class {
+    type Err = FromStringError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "Barbarian" => Ok(Class::Barbarian),
+            "Bard" => Ok(Class::Bard),
+            "Cleric" => Ok(Class::Cleric),
+            "Druid" => Ok(Class::Druid),
+            "Fighter" => Ok(Class::Fighter),
+            "Monk" => Ok(Class::Monk),
+            "Paladin" => Ok(Class::Paladin),
+            "Ranger" => Ok(Class::Ranger),
+            "Rogue" => Ok(Class::Rogue),
+            "Sorcerer" => Ok(Class::Sorcerer),
+            "Warlock" => Ok(Class::Warlock),
+            "Wizard" => Ok(Class::Wizard),
+            _ => Err(FromStringError)
+        }
+    }
 }
 
 pub enum DamageType {
@@ -47,6 +133,7 @@ pub enum DamageType {
     Thunder,
 }
 
+#[derive(Debug, EnumIter)]
 pub enum Race {
     Dragonborn,
     Dwarf,
@@ -57,6 +144,41 @@ pub enum Race {
     Halfling,
     Human,
     Tiefling
+}
+
+impl ToString for Race {
+    fn to_string(&self) -> String {
+        match self {
+            Race::Dragonborn => String::from("Dragonborn"),
+            Race::Dwarf => String::from("Dwarf"),
+            Race::Elf => String::from("Elf"),
+            Race::Gnome => String::from("Gnome"),
+            Race::HalfElf => String::from("Half Elf"),
+            Race::HalfOrc => String::from("Half Orc"),
+            Race::Halfling => String::from("Halfling"),
+            Race::Human => String::from("Human"),
+            Race::Tiefling => String::from("Tiefling"),
+        }
+    }
+}
+
+impl FromStr for Race {
+    type Err = FromStringError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "Dragonborn" => Ok(Race::Dragonborn),
+            "Dwarf" => Ok(Race::Dwarf),
+            "Elf" => Ok(Race::Elf),
+            "Gnome" => Ok(Race::Gnome),
+            "Half Elf" => Ok(Race::HalfElf),
+            "Half Orc" => Ok(Race::HalfOrc),
+            "Halfling" => Ok(Race::Halfling),
+            "Human" => Ok(Race::Human),
+            "Tiefling" => Ok(Race::Tiefling),
+            _ => Err(FromStringError)
+        }
+    }
 }
 
 pub enum Size {
