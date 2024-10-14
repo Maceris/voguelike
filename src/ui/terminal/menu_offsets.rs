@@ -10,10 +10,44 @@ impl Offset {
     }
 }
 
+pub const UNKNOWN_OFFSET: Offset = Offset::new(0, 0);
+
+pub mod new_character {
+    use crate::ui::menu_focus;
+    use super::{Offset, UNKNOWN_OFFSET};
+
+    pub fn get_offset(index: usize) -> Offset {
+        match index {
+            menu_focus::new_character::NAME => NAME,
+            menu_focus::new_character::CLASS => CLASS,
+            menu_focus::new_character::RACE => RACE,
+            menu_focus::new_character::ALIGNMENT => ALIGNMENT,
+            menu_focus::new_character::STATS => STATS,
+            _ => UNKNOWN_OFFSET
+        }
+    }
+
+    pub const NAME: Offset = Offset::new(2, 1);
+    pub const CLASS: Offset = Offset::new(2, 2);
+    pub const RACE: Offset = Offset::new(2, 3);
+    pub const ALIGNMENT: Offset = Offset::new(2, 4);
+    pub const STATS: Offset = Offset::new(2, 5);
+}
+
 pub mod test_window {
-    use super::Offset;
+    use crate::ui::menu_focus;
+    use super::{Offset, UNKNOWN_OFFSET};
+
+    pub fn get_offset(index: usize) -> Offset {
+        match index {
+            menu_focus::test_window::DROPDOWN => DROPDOWN,
+            menu_focus::test_window::TEXT_FIELD => TEXT_FIELD,
+            menu_focus::test_window::POINT_BUY => POINT_BUY,
+            _ => UNKNOWN_OFFSET
+        }
+    }
 
     pub const DROPDOWN: Offset = Offset::new(2, 2);
     pub const TEXT_FIELD: Offset = Offset::new(2, 3);
-    pub const POINT_BUY: Offset = Offset::new(0, 4);
+    pub const POINT_BUY: Offset = Offset::new(2, 4);
 }

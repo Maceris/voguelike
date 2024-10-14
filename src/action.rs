@@ -396,7 +396,7 @@ impl ActionRoutine for NavigateMenu {
         }
 
         let maybe_menu_data: Option<&mut dyn MenuNavigation> = match menu.unwrap() {
-            MenuType::NewCharacter => Some(&mut game.menu_data.character_creation),
+            MenuType::NewCharacter => Some(&mut game.menu_data.new_character),
             MenuType::TestMenu => Some(&mut game.menu_data.test_menu),
             _ => None,
         };

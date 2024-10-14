@@ -2,7 +2,7 @@ use strum::IntoEnumIterator;
 
 use crate::{constants::{self, NAME_MAX_LENGTH}, tabletop::{self, Alignment, Class, Race, Stats}, ui::menu_focus};
 
-use super::menu_focus::{FocusIndex, FocusTracking};
+use super::menu_focus::{new_character, test_window, FocusIndex, FocusTracking};
 
 pub struct Dropdown {
     pub choices: Vec<String>,
@@ -62,16 +62,105 @@ pub trait MenuNavigation {
 }
 
 pub struct MenuData {
-    pub character_creation: CharacterCreation,
+    pub new_character: NewCharacter,
     pub test_menu: TestMenu,
 }
 
 impl MenuData {
     pub fn new() -> Self {
         Self {
-            character_creation: CharacterCreation::new(),
+            new_character: NewCharacter::new(),
             test_menu: TestMenu::new(),
         }
+    }
+}
+
+
+pub struct NewCharacter {
+    focus_index: FocusIndex,
+    pub items: Vec<MenuItem>,
+    
+}
+
+impl NewCharacter {
+    
+    pub fn new() -> Self {
+        let name = TextField::new(String::from("Name"), constants::NAME_MAX_LENGTH);
+        let class = Dropdown::new(String::from("Class"), Class::iter().map(|val| val.to_string()).collect());
+        let race = Dropdown::new(String::from("Race"), Race::iter().map(|val| val.to_string()).collect());
+        let alignment = Dropdown::new(String::from("Alignment"), Alignment::iter().map(|val| val.to_string()).collect());
+        let stats = PointBuy::new();
+        
+        let mut result = Self {
+            focus_index: 0,
+            items: Vec::with_capacity(new_character::FOCUS_INDEX_SIZE),
+        };
+
+        result.items.push(MenuItem::TextField(name));
+        result.items.push(MenuItem::Dropdown(class));
+        result.items.push(MenuItem::Dropdown(race));
+        result.items.push(MenuItem::Dropdown(alignment));
+        result.items.push(MenuItem::PointBuy(stats));
+
+        return result;
+    }
+
+    pub fn get_focus_index(&self) -> FocusIndex {
+        self.focus_index
+    }
+
+    pub fn get_currently_selected_element(&self) -> &MenuItem {
+        self.items.get(self.focus_index as usize).unwrap()
+    }
+}
+
+impl FocusTracking for NewCharacter {
+    fn get_current_focus_index(&self) -> FocusIndex {
+        //TODO(ches) implement this.
+        return 0;
+    }
+
+    fn get_max_focus_index(&self) -> FocusIndex {
+        //TODO(ches) implement this.
+        return 0;
+    }
+
+    fn next_focus(&mut self) {
+        //TODO(ches) implement this.
+    }
+
+    fn previous_focus(&mut self) {
+        //TODO(ches) implement this.
+    }
+
+    fn wraps_focus() -> bool {
+        return false;
+    }
+}
+
+impl MenuNavigation for NewCharacter {
+    fn navigate_menu_down(&mut self) {
+        //TODO(ches) implement this
+    }
+    
+    fn navigate_menu_in(&mut self) {
+        //TODO(ches) implement this
+    }
+
+    fn navigate_menu_left(&mut self) {
+        //TODO(ches) implement this
+    }
+
+    fn navigate_menu_out(&mut self) {
+        //TODO(ches) implement this
+    }
+
+    fn navigate_menu_right(&mut self) {
+        //TODO(ches) implement this
+    }
+
+    fn navigate_menu_up(&mut self) {
+        //TODO(ches) implement this
     }
 }
 
@@ -119,96 +208,14 @@ pub struct TextField {
     pub value: String,
 }
 
-pub struct CharacterCreation {
-    pub alignment: Dropdown,
-    pub class: Dropdown,
-    pub name: TextField,
-    pub race: Dropdown,
-    pub stats: PointBuy,
-}
-
-impl CharacterCreation {
-    pub fn new() -> Self {
+impl TextField {
+    pub fn new(label: String, max_length: u16) -> Self {
         Self {
-            alignment: Dropdown {
-                choices: Alignment::iter().map(|val| val.to_string()).collect(),
-                editing: false,
-                label: "Alignment".to_string(),
-                selected_item: 0,
-                size: 0,
-            },
-            class: Dropdown {
-                choices: Class::iter().map(|val| val.to_string()).collect(),
-                editing: false,
-                label: "Class".to_string(),
-                selected_item: 0,
-                size: 0,
-            },
-            name: TextField {
-                editing: false,
-                label: "Name".to_string(),
-                max_length: constants::NAME_MAX_LENGTH,
-                value: String::with_capacity(NAME_MAX_LENGTH as usize),
-            },
-            race: Dropdown {
-                choices: Race::iter().map(|val| val.to_string()).collect(),
-                editing: false,
-                label: "Race".to_string(),
-                selected_item: 0,
-                size: 0,
-            },
-            stats: PointBuy::new(),
+            editing: false,
+            label,
+            max_length,
+            value: String::with_capacity(max_length as usize)
         }
-    }
-}
-
-impl FocusTracking for CharacterCreation {
-    fn get_current_focus_index(&self) -> FocusIndex {
-        //TODO(ches) implement this.
-        return 0;
-    }
-
-    fn get_max_focus_index(&self) -> FocusIndex {
-        //TODO(ches) implement this.
-        return 0;
-    }
-
-    fn next_focus(&mut self) {
-        //TODO(ches) implement this.
-    }
-
-    fn previous_focus(&mut self) {
-        //TODO(ches) implement this.
-    }
-
-    fn wraps_focus() -> bool {
-        return false;
-    }
-}
-
-impl MenuNavigation for CharacterCreation {
-    fn navigate_menu_down(&mut self) {
-        //TODO(ches) implement this
-    }
-    
-    fn navigate_menu_in(&mut self) {
-        //TODO(ches) implement this
-    }
-
-    fn navigate_menu_left(&mut self) {
-        //TODO(ches) implement this
-    }
-
-    fn navigate_menu_out(&mut self) {
-        //TODO(ches) implement this
-    }
-
-    fn navigate_menu_right(&mut self) {
-        //TODO(ches) implement this
-    }
-
-    fn navigate_menu_up(&mut self) {
-        //TODO(ches) implement this
     }
 }
 
@@ -232,18 +239,13 @@ impl TestMenu {
             "Green".to_string()
         ]);
 
-        let text_field = TextField {
-            editing: false,
-            label: "Player Name".to_string(),
-            max_length: constants::NAME_MAX_LENGTH,
-            value: String::with_capacity(NAME_MAX_LENGTH as usize),
-        };
+        let text_field = TextField::new(String::from("Player Name"), constants::NAME_MAX_LENGTH);
 
         let point_buy = PointBuy::new();
 
         let mut result = Self {
             focus_index: 0,
-            items: Vec::with_capacity(3),
+            items: Vec::with_capacity(test_window::FOCUS_INDEX_SIZE),
         };
 
         result.items.push(MenuItem::Dropdown(dropdown));
@@ -265,6 +267,10 @@ impl TestMenu {
             }
         }
         return false;
+    }
+
+    pub fn get_focus_index(&self) -> FocusIndex {
+        self.focus_index
     }
 
     pub fn get_currently_selected_element(&self) -> &MenuItem {
