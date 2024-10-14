@@ -269,6 +269,7 @@ impl TestMenu {
         return false;
     }
 
+    //TODO(ches) Make these focus indices and selected item functions a trait
     pub fn get_focus_index(&self) -> FocusIndex {
         self.focus_index
     }
@@ -315,6 +316,7 @@ impl FocusTracking for TestMenu {
     }
 }
 
+//TODO(ches) Make this a function that operates on a trait
 impl MenuNavigation for TestMenu {
     fn navigate_menu_down(&mut self) {
         let item: &mut MenuItem = self.items.get_mut(self.focus_index as usize).unwrap();
