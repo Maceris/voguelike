@@ -15,7 +15,7 @@ fn map_input_menu(menu: MenuType, event: KeyEvent, game: &mut Game) -> Option<Ac
     return match menu {
         MenuType::Character => None,
         MenuType::Main => map_input_main_menu(event, game),
-        MenuType::NewCharacter => None,
+        MenuType::NewCharacter => map_input_new_character(event, game),
         MenuType::Pause => None,
         MenuType::TestMenu => map_input_test_menu(event, game),
     };
@@ -49,7 +49,30 @@ fn map_input_main_menu(event: KeyEvent, game: &Game) -> Option<ActionRequest> {
         };
         return Some(request);
     }
+    if event.code == KeyCode::Char('n') || event.code == KeyCode::Char('N') {
+        let request = ActionRequest {
+            actor: game.special_entities.player,
+            action: new_action!(OpenMenu),
+            noun: Noun::Menu(MenuType::NewCharacter),
+            second: Noun::Nothing
+        };
+        return Some(request);
+    }
     
+    return None;
+}
+
+fn map_input_new_character(event: KeyEvent, game: &Game) -> Option<ActionRequest> {
+    if event.code == KeyCode::Esc {
+        let request = ActionRequest {
+            actor: game.special_entities.player,
+            action: new_action!(CloseMenu),
+            noun: Noun::Nothing,
+            second: Noun::Nothing
+        };
+        return Some(request);
+    }
+
     return None;
 }
 

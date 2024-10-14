@@ -240,12 +240,15 @@ fn draw_main_menu(render_state: &mut RenderState, _game: &Game) {
 
     draw_text(render_state, "P", Color::Yellow, 3, 1);
     draw_text(render_state, "Play game", Color::White, 5, 1);
-    
-    draw_text(render_state, "Q", Color::Yellow, 3, 2);
-    draw_text(render_state, "Quit", Color::White, 5, 2);
 
-    draw_text(render_state, "T", Color::Yellow, 3, 3);
-    draw_text(render_state, "Test Menu", Color::White, 5, 3);
+    draw_text(render_state, "N", Color::Yellow, 3, 2);
+    draw_text(render_state, "New Character", Color::White, 5, 2);
+    
+    draw_text(render_state, "Q", Color::Yellow, 3, 3);
+    draw_text(render_state, "Quit", Color::White, 5, 3);
+
+    draw_text(render_state, "T", Color::Yellow, 3, 4);
+    draw_text(render_state, "Test Menu", Color::White, 5, 4);
 }
 
 fn draw_point_buy(render_state: &mut RenderState, focused: bool, point_buy: &PointBuy, x: u16, y: u16) {
