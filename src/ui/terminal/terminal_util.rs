@@ -4,7 +4,7 @@ use std::{error::Error, fmt, io::{self, Write}, time::Duration};
 
 use crossterm::style;
 
-use crate::{action::ActionRequest, component::Position, game::{DebugInfo, Game, GameState}, map::Tile, tabletop::{self, Race}, ui::{menu::{Dropdown, MenuItem, MenuType, NewCharacter, PointBuy, TestMenu, TextField}, menu_focus::new_character}, FRAMES_PER_SECOND};
+use crate::{action::ActionRequest, component::Position, game::{DebugInfo, Game, GameState}, map::Tile, tabletop::{self, Race}, ui::menu::{Dropdown, Menu, MenuItem, MenuType, NewCharacter, PointBuy, TestMenu, TextField}, FRAMES_PER_SECOND};
 
 use super::{icons, key_mapping, menu_offsets::{self, test_window, Offset}};
 

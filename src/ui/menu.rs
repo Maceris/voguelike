@@ -1,8 +1,8 @@
 use strum::IntoEnumIterator;
 
-use crate::{constants::{self, NAME_MAX_LENGTH}, tabletop::{self, Alignment, Class, Race, Stats}, ui::menu_focus};
+use crate::{constants, tabletop::{self, Alignment, Class, Race, Stats}};
 
-use super::menu_focus::{new_character, test_window, FocusIndex, FocusTracking};
+use super::menu_focus::{new_character, test_window, FocusIndex};
 
 pub struct Dropdown {
     pub choices: Vec<String>,
@@ -37,6 +37,16 @@ impl Dropdown {
     }
 }
 
+pub trait Menu {
+    fn get_currently_selected_element(&self) -> &MenuItem;
+    fn get_currently_selected_element_mut(&mut self) -> &mut MenuItem;
+    fn get_focus_index(&self) -> FocusIndex;
+    fn get_max_focus_index(&self) -> FocusIndex;
+    fn next_focus(&mut self);
+    fn previous_focus(&mut self);
+    fn wraps_focus(&self) -> bool;
+}
+
 pub enum MenuItem {
     Dropdown(Dropdown),
     PointBuy(PointBuy),
@@ -50,15 +60,6 @@ pub enum MenuType {
     NewCharacter,
     Pause,
     TestMenu,
-}
-
-pub trait MenuNavigation {
-    fn navigate_menu_down(&mut self);
-    fn navigate_menu_in(&mut self);
-    fn navigate_menu_left(&mut self);
-    fn navigate_menu_out(&mut self);
-    fn navigate_menu_right(&mut self);
-    fn navigate_menu_up(&mut self);
 }
 
 pub struct MenuData {
@@ -75,11 +76,9 @@ impl MenuData {
     }
 }
 
-
 pub struct NewCharacter {
     focus_index: FocusIndex,
     pub items: Vec<MenuItem>,
-    
 }
 
 impl NewCharacter {
@@ -104,25 +103,15 @@ impl NewCharacter {
 
         return result;
     }
-
-    pub fn get_focus_index(&self) -> FocusIndex {
-        self.focus_index
-    }
-
-    pub fn get_currently_selected_element(&self) -> &MenuItem {
-        self.items.get(self.focus_index as usize).unwrap()
-    }
 }
 
-impl FocusTracking for NewCharacter {
-    fn get_current_focus_index(&self) -> FocusIndex {
-        //TODO(ches) implement this.
-        return 0;
+impl Menu for NewCharacter {
+    fn get_focus_index(&self) -> FocusIndex {
+        return self.focus_index;
     }
 
     fn get_max_focus_index(&self) -> FocusIndex {
-        //TODO(ches) implement this.
-        return 0;
+        return self.items.len() as FocusIndex;
     }
 
     fn next_focus(&mut self) {
@@ -133,34 +122,16 @@ impl FocusTracking for NewCharacter {
         //TODO(ches) implement this.
     }
 
-    fn wraps_focus() -> bool {
+    fn wraps_focus(&self) -> bool {
         return false;
     }
-}
-
-impl MenuNavigation for NewCharacter {
-    fn navigate_menu_down(&mut self) {
-        //TODO(ches) implement this
+    
+    fn get_currently_selected_element(&self) -> &MenuItem {
+        self.items.get(self.focus_index as usize).unwrap()
     }
     
-    fn navigate_menu_in(&mut self) {
-        //TODO(ches) implement this
-    }
-
-    fn navigate_menu_left(&mut self) {
-        //TODO(ches) implement this
-    }
-
-    fn navigate_menu_out(&mut self) {
-        //TODO(ches) implement this
-    }
-
-    fn navigate_menu_right(&mut self) {
-        //TODO(ches) implement this
-    }
-
-    fn navigate_menu_up(&mut self) {
-        //TODO(ches) implement this
+    fn get_currently_selected_element_mut(&mut self) -> &mut MenuItem {
+        self.items.get_mut(self.focus_index as usize).unwrap()
     }
 }
 
@@ -284,8 +255,8 @@ impl TestMenu {
 
 }
 
-impl FocusTracking for TestMenu {
-    fn get_current_focus_index(&self) -> FocusIndex {
+impl Menu for TestMenu {
+    fn get_focus_index(&self) -> FocusIndex {
         return self.focus_index;
     }
     
@@ -294,143 +265,148 @@ impl FocusTracking for TestMenu {
     }
     
     fn next_focus(&mut self) {
-        if self.get_current_focus_index() < self.get_max_focus_index() {
+        if self.focus_index < self.get_max_focus_index() {
             self.focus_index += 1;
         }
-        else if TestMenu::wraps_focus() && self.get_current_focus_index() >= self.get_max_focus_index() {
+        else if self.wraps_focus() && self.focus_index >= self.get_max_focus_index() {
             self.focus_index = 0;
         }
     }
     
     fn previous_focus(&mut self) {
-        if self.get_current_focus_index() > 0 {
+        if self.focus_index > 0 {
             self.focus_index -= 1;
         }
-        else if TestMenu::wraps_focus() && self.get_current_focus_index() == 0 {
+        else if self.wraps_focus() && self.focus_index == 0 {
             self.focus_index = self.get_max_focus_index();
         }
     }
 
-    fn wraps_focus() -> bool {
+    fn wraps_focus(&self) -> bool {
         return false;
+    }
+    
+    fn get_currently_selected_element(&self) -> &MenuItem {
+        self.items.get(self.focus_index as usize).unwrap()
+    }
+    
+    fn get_currently_selected_element_mut(&mut self) -> &mut MenuItem {
+        self.items.get_mut(self.focus_index as usize).unwrap()
     }
 }
 
-//TODO(ches) Make this a function that operates on a trait
-impl MenuNavigation for TestMenu {
-    fn navigate_menu_down(&mut self) {
-        let item: &mut MenuItem = self.items.get_mut(self.focus_index as usize).unwrap();
+pub fn navigate_menu_down(menu: &mut dyn Menu) {
+    let item: &mut MenuItem = menu.get_currently_selected_element_mut();
 
-        let handled:bool = match item {
-            MenuItem::Dropdown(dropdown) => {
-                if dropdown.editing {
-                    if dropdown.selected_item < dropdown.choices.len() {
-                        dropdown.selected_item += 1;
-                    }
+    let handled:bool = match item {
+        MenuItem::Dropdown(dropdown) => {
+            if dropdown.editing {
+                if dropdown.selected_item < dropdown.choices.len() {
+                    dropdown.selected_item += 1;
                 }
-                dropdown.editing
-            },
-            MenuItem::PointBuy(point_buy) => {
-                let mut result = false;
-                if point_buy.internal_focus < tabletop::NUMBER_OF_STATS as u16 - 1 {
-                    point_buy.internal_focus += 1;
-                    result = true;
+            }
+            dropdown.editing
+        },
+        MenuItem::PointBuy(point_buy) => {
+            let mut result = false;
+            if point_buy.internal_focus < tabletop::NUMBER_OF_STATS as u16 - 1 {
+                point_buy.internal_focus += 1;
+                result = true;
+            }
+            result
+        },
+        MenuItem::TextField(text_field) => text_field.editing,
+    };
+    if !handled {
+        menu.next_focus();
+    }
+}
+
+pub fn navigate_menu_in(menu: &mut dyn Menu) {
+    let item: &mut MenuItem = menu.get_currently_selected_element_mut();
+
+    match item {
+        MenuItem::Dropdown(dropdown) => dropdown.editing = !dropdown.editing,
+        MenuItem::PointBuy(_) => (),
+        MenuItem::TextField(text_field) => text_field.editing = !text_field.editing,
+    };
+}
+
+pub fn navigate_menu_left(menu: &mut dyn Menu) {
+    let item: &mut MenuItem = menu.get_currently_selected_element_mut();
+
+    match item {
+        MenuItem::PointBuy(point_buy) => {
+            let mut fallback: u8 = 0;
+            let stat: &mut u8 = match point_buy.internal_focus {
+                0 => &mut point_buy.stats.charisma,
+                1 => &mut point_buy.stats.constitution,
+                2 => &mut point_buy.stats.dexterity,
+                3 => &mut point_buy.stats.intelligence,
+                4 => &mut point_buy.stats.strength,
+                5 => &mut point_buy.stats.wisdom,
+                _ => &mut fallback
+            };
+            tabletop::point_buy_attempt_decrease(stat, &mut point_buy.stat_points);
+        },
+        _ => ()
+    };
+}
+
+pub fn navigate_menu_out(menu: &mut dyn Menu) {
+    let item: &mut MenuItem = menu.get_currently_selected_element_mut();
+
+    match item {
+        MenuItem::Dropdown(dropdown) => dropdown.editing = false,
+        MenuItem::PointBuy(_) => (),
+        MenuItem::TextField(text_field) => text_field.editing = false,
+    };
+}
+
+pub fn navigate_menu_right(menu: &mut dyn Menu) {
+    let item: &mut MenuItem = menu.get_currently_selected_element_mut();
+
+    match item {
+        MenuItem::PointBuy(point_buy) => {
+            let mut fallback: u8 = 0;
+            let stat: &mut u8 = match point_buy.internal_focus {
+                0 => &mut point_buy.stats.charisma,
+                1 => &mut point_buy.stats.constitution,
+                2 => &mut point_buy.stats.dexterity,
+                3 => &mut point_buy.stats.intelligence,
+                4 => &mut point_buy.stats.strength,
+                5 => &mut point_buy.stats.wisdom,
+                _ => &mut fallback
+            };
+            tabletop::point_buy_attempt_increase(stat, &mut point_buy.stat_points);
+        },
+        _ => ()
+    };
+}
+
+pub fn navigate_menu_up(menu: &mut dyn Menu) {
+    let item: &mut MenuItem = menu.get_currently_selected_element_mut();
+
+    let handled:bool = match item {
+        MenuItem::Dropdown(dropdown) => {
+            if dropdown.editing {
+                if dropdown.selected_item > 0 {
+                    dropdown.selected_item -= 1;
                 }
-                result
-            },
-            MenuItem::TextField(text_field) => text_field.editing,
-        };
-        if !handled {
-            self.next_focus();
-        }
-    }
-    
-    fn navigate_menu_in(&mut self) {
-        let item: &mut MenuItem = self.items.get_mut(self.focus_index as usize).unwrap();
-
-        match item {
-            MenuItem::Dropdown(dropdown) => dropdown.editing = !dropdown.editing,
-            MenuItem::PointBuy(_) => (),
-            MenuItem::TextField(text_field) => text_field.editing = !text_field.editing,
-        };
-    }
-
-    fn navigate_menu_left(&mut self) {
-        let item: &mut MenuItem = self.items.get_mut(self.focus_index as usize).unwrap();
-
-        match item {
-            MenuItem::PointBuy(point_buy) => {
-                let mut fallback: u8 = 0;
-                let stat: &mut u8 = match point_buy.internal_focus {
-                    0 => &mut point_buy.stats.charisma,
-                    1 => &mut point_buy.stats.constitution,
-                    2 => &mut point_buy.stats.dexterity,
-                    3 => &mut point_buy.stats.intelligence,
-                    4 => &mut point_buy.stats.strength,
-                    5 => &mut point_buy.stats.wisdom,
-                    _ => &mut fallback
-                };
-                tabletop::point_buy_attempt_decrease(stat, &mut point_buy.stat_points);
-            },
-            _ => ()
-        };
-    }
-    
-    fn navigate_menu_out(&mut self) {
-        let item: &mut MenuItem = self.items.get_mut(self.focus_index as usize).unwrap();
-
-        match item {
-            MenuItem::Dropdown(dropdown) => dropdown.editing = false,
-            MenuItem::PointBuy(_) => (),
-            MenuItem::TextField(text_field) => text_field.editing = false,
-        };
-    }
-
-    fn navigate_menu_right(&mut self) {
-        let item: &mut MenuItem = self.items.get_mut(self.focus_index as usize).unwrap();
-
-        match item {
-            MenuItem::PointBuy(point_buy) => {
-                let mut fallback: u8 = 0;
-                let stat: &mut u8 = match point_buy.internal_focus {
-                    0 => &mut point_buy.stats.charisma,
-                    1 => &mut point_buy.stats.constitution,
-                    2 => &mut point_buy.stats.dexterity,
-                    3 => &mut point_buy.stats.intelligence,
-                    4 => &mut point_buy.stats.strength,
-                    5 => &mut point_buy.stats.wisdom,
-                    _ => &mut fallback
-                };
-                tabletop::point_buy_attempt_increase(stat, &mut point_buy.stat_points);
-            },
-            _ => ()
-        };
-    }
-
-    fn navigate_menu_up(&mut self) {
-        let item: &mut MenuItem = self.items.get_mut(self.focus_index as usize).unwrap();
-
-        let handled:bool = match item {
-            MenuItem::Dropdown(dropdown) => {
-                if dropdown.editing {
-                    if dropdown.selected_item > 0 {
-                        dropdown.selected_item -= 1;
-                    }
-                }
-                dropdown.editing
-            },
-            MenuItem::PointBuy(point_buy) => {
-                let mut result = false;
-                if point_buy.internal_focus > 0 {
-                    point_buy.internal_focus -= 1;
-                    result = true;
-                }
-                result
-            },
-            MenuItem::TextField(text_field) => text_field.editing,
-        };
-        if !handled {
-            self.previous_focus();
-        }
+            }
+            dropdown.editing
+        },
+        MenuItem::PointBuy(point_buy) => {
+            let mut result = false;
+            if point_buy.internal_focus > 0 {
+                point_buy.internal_focus -= 1;
+                result = true;
+            }
+            result
+        },
+        MenuItem::TextField(text_field) => text_field.editing,
+    };
+    if !handled {
+        menu.previous_focus();
     }
 }

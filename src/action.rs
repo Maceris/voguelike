@@ -1,6 +1,6 @@
 use traits::create_action;
 
-use crate::{component::Position, entity::EntityID, game::{Game, GameState}, ui::menu::{MenuNavigation, MenuType}};
+use crate::{component::Position, entity::EntityID, game::{Game, GameState}, ui::menu::{self, Menu, MenuType}};
 
 create_action!(CloseMenu);
 create_action!(NavigateMenu);
@@ -234,12 +234,6 @@ pub enum RuleType {
 
 pub type Rule = fn(RuleType, Action) -> bool;
 
-macro_rules! execute_action {
-    ($class:ident) => {
-        Action::$class($class) => $class::execute(game, actor, noun, second)
-    };
-}
-
 pub fn execute_action(game: &mut Game, action_request: ActionRequest) {
     
     let actor:EntityID = action_request.actor;
@@ -395,7 +389,7 @@ impl ActionRoutine for NavigateMenu {
             return true;
         }
 
-        let maybe_menu_data: Option<&mut dyn MenuNavigation> = match menu.unwrap() {
+        let maybe_menu_data: Option<&mut dyn Menu> = match menu.unwrap() {
             MenuType::NewCharacter => Some(&mut game.menu_data.new_character),
             MenuType::TestMenu => Some(&mut game.menu_data.test_menu),
             _ => None,
@@ -405,25 +399,25 @@ impl ActionRoutine for NavigateMenu {
             return false;
         }
 
-        let menu_data: &mut dyn MenuNavigation = maybe_menu_data.unwrap();
+        let menu_data: &mut dyn Menu = maybe_menu_data.unwrap();
         let direction = maybe_direction.unwrap();
         if direction == game.special_entities.north {
-            menu_data.navigate_menu_up();
+            menu::navigate_menu_up(menu_data);
         }
         else if direction == game.special_entities.south {
-            menu_data.navigate_menu_down();
+            menu::navigate_menu_down(menu_data);
         }
         else if direction == game.special_entities.up {
-            menu_data.navigate_menu_out();
+            menu::navigate_menu_out(menu_data);
         }
         else if direction == game.special_entities.down {
-            menu_data.navigate_menu_in();
+            menu::navigate_menu_in(menu_data);
         }
         else if direction == game.special_entities.east {
-            menu_data.navigate_menu_right();
+            menu::navigate_menu_right(menu_data);
         }
         else if direction == game.special_entities.west {
-            menu_data.navigate_menu_left();
+            menu::navigate_menu_left(menu_data);
         }
 
         return false;
