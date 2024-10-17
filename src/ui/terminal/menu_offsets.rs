@@ -1,3 +1,4 @@
+use crate::ui::menu::MenuType;
 
 pub struct Offset {
     pub x: u16,
@@ -50,4 +51,14 @@ pub mod test_window {
     pub const DROPDOWN: Offset = Offset::new(2, 2);
     pub const TEXT_FIELD: Offset = Offset::new(2, 3);
     pub const POINT_BUY: Offset = Offset::new(2, 4);
+}
+
+pub fn get_offset(menu_type: MenuType, index: usize) -> Offset {
+    match menu_type {
+        MenuType::Character => UNKNOWN_OFFSET,
+        MenuType::Main => UNKNOWN_OFFSET,
+        MenuType::NewCharacter => new_character::get_offset(index),
+        MenuType::Pause => UNKNOWN_OFFSET,
+        MenuType::TestMenu => test_window::get_offset(index),
+    }
 }

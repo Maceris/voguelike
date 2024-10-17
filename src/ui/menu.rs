@@ -40,11 +40,14 @@ impl Dropdown {
 pub trait Menu {
     fn get_currently_selected_element(&self) -> &MenuItem;
     fn get_currently_selected_element_mut(&mut self) -> &mut MenuItem;
+    fn get_focusable(&self, index: FocusIndex) -> &MenuItem;
+    fn get_focusable_mut(&mut self, index: FocusIndex) -> &MenuItem;
     fn get_focus_index(&self) -> FocusIndex;
     fn get_max_focus_index(&self) -> FocusIndex;
     fn next_focus(&mut self);
     fn previous_focus(&mut self);
     fn wraps_focus(&self) -> bool;
+    fn get_menu_type(&self) -> MenuType;
 }
 
 pub enum MenuItem {
@@ -111,7 +114,7 @@ impl Menu for NewCharacter {
     }
 
     fn get_max_focus_index(&self) -> FocusIndex {
-        return self.items.len() as FocusIndex;
+        return self.items.len() as FocusIndex - 1;
     }
 
     fn next_focus(&mut self) {
@@ -125,6 +128,14 @@ impl Menu for NewCharacter {
     fn wraps_focus(&self) -> bool {
         return false;
     }
+
+    fn get_focusable(&self, index: FocusIndex) -> &MenuItem {
+        self.items.get(index as usize).unwrap()
+    }
+
+    fn get_focusable_mut(&mut self, index: FocusIndex) -> &MenuItem {
+        self.items.get_mut(index as usize).unwrap()
+    }
     
     fn get_currently_selected_element(&self) -> &MenuItem {
         self.items.get(self.focus_index as usize).unwrap()
@@ -132,6 +143,10 @@ impl Menu for NewCharacter {
     
     fn get_currently_selected_element_mut(&mut self) -> &mut MenuItem {
         self.items.get_mut(self.focus_index as usize).unwrap()
+    }
+
+    fn get_menu_type(&self) -> MenuType {
+        return MenuType::NewCharacter;
     }
 }
 
@@ -256,6 +271,15 @@ impl TestMenu {
 }
 
 impl Menu for TestMenu {
+
+    fn get_focusable(&self, index: FocusIndex) -> &MenuItem {
+        self.items.get(index as usize).unwrap()
+    }
+
+    fn get_focusable_mut(&mut self, index: FocusIndex) -> &MenuItem {
+        self.items.get_mut(index as usize).unwrap()
+    }
+
     fn get_focus_index(&self) -> FocusIndex {
         return self.focus_index;
     }
@@ -292,6 +316,10 @@ impl Menu for TestMenu {
     
     fn get_currently_selected_element_mut(&mut self) -> &mut MenuItem {
         self.items.get_mut(self.focus_index as usize).unwrap()
+    }
+    
+    fn get_menu_type(&self) -> MenuType {
+        return MenuType::TestMenu;
     }
 }
 

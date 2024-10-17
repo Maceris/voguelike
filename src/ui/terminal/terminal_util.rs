@@ -236,6 +236,45 @@ fn draw_menu(menu_type: MenuType, render_state: &mut RenderState, game: &Game) {
     };
 }
 
+fn draw_menu_items(render_state: &mut RenderState, menu: &dyn Menu) {
+    let menu_type = menu.get_menu_type();
+
+    for index in 0..menu.get_max_focus_index()+1 {
+        let offset: Offset = menu_offsets::get_offset(menu_type, index as usize);
+        match menu.get_focusable(index) {
+            MenuItem::Dropdown(dropdown) => {
+                if !dropdown.editing {
+                    draw_dropdown(render_state, dropdown, offset);
+                }
+            },
+            MenuItem::PointBuy(point_buy) => {
+                draw_point_buy(render_state, false, point_buy, offset);
+            }
+            MenuItem::TextField(text_field) => {
+                if !text_field.editing {
+                    draw_text_field(render_state, text_field, offset);
+                }
+            },
+        };
+    }
+    
+    let selected: &MenuItem = menu.get_currently_selected_element();
+    let selected_offset: Offset = menu_offsets::get_offset(menu_type, menu.get_focus_index() as usize);
+    match selected {
+        MenuItem::Dropdown(dropdown) => {
+            draw_dropdown(render_state, dropdown, selected_offset);
+            draw_text(render_state, "*", Color::Yellow, test_window::DROPDOWN.x - 2, test_window::DROPDOWN.y);
+        },
+        MenuItem::PointBuy(point_buy) => {
+            draw_point_buy(render_state, true, point_buy, selected_offset);
+        }
+        MenuItem::TextField(text_field) => {
+            draw_text_field(render_state, text_field, selected_offset);
+            draw_text(render_state, "*", Color::Yellow, test_window::TEXT_FIELD.x - 2, test_window::TEXT_FIELD.y);
+        },
+    }
+}
+
 fn draw_main_menu(render_state: &mut RenderState, _game: &Game) {
     draw_text(render_state, "P", Color::Yellow, 3, 1);
     draw_text(render_state, "Play game", Color::White, 5, 1);
@@ -256,42 +295,8 @@ fn draw_new_character_menu(render_state: &mut RenderState, game: &Game) {
 
     draw_text(render_state, &title, DEFAULT_FOREGROUND, title_x, 0);
 
-    let menu_data: &NewCharacter = &game.menu_data.new_character;
-
-    for index in 0..menu_data.items.len() {
-        let offset: Offset = menu_offsets::new_character::get_offset(index);
-        match menu_data.items.get(index).unwrap() {
-            MenuItem::Dropdown(dropdown) => {
-                if !dropdown.editing {
-                    draw_dropdown(render_state, dropdown, offset);
-                }
-            },
-            MenuItem::PointBuy(point_buy) => {
-                draw_point_buy(render_state, false, point_buy, offset);
-            }
-            MenuItem::TextField(text_field) => {
-                if !text_field.editing {
-                    draw_text_field(render_state, text_field, offset);
-                }
-            },
-        };
-    }
-    
-    let selected: &MenuItem = menu_data.get_currently_selected_element();
-    let selected_offset: Offset = menu_offsets::new_character::get_offset(menu_data.get_focus_index() as usize);
-    match selected {
-        MenuItem::Dropdown(dropdown) => {
-            draw_dropdown(render_state, dropdown, selected_offset);
-            draw_text(render_state, "*", Color::Yellow, test_window::DROPDOWN.x - 2, test_window::DROPDOWN.y);
-        },
-        MenuItem::PointBuy(point_buy) => {
-            draw_point_buy(render_state, true, point_buy, selected_offset);
-        }
-        MenuItem::TextField(text_field) => {
-            draw_text_field(render_state, text_field, selected_offset);
-            draw_text(render_state, "*", Color::Yellow, test_window::TEXT_FIELD.x - 2, test_window::TEXT_FIELD.y);
-        },
-    }
+    let menu: &NewCharacter = &game.menu_data.new_character;
+    draw_menu_items(render_state, menu);
 }
 
 fn draw_point_buy(render_state: &mut RenderState, focused: bool, point_buy: &PointBuy, offset: Offset) {
@@ -393,43 +398,8 @@ fn draw_text_field(render_state: &mut RenderState, text_field: &TextField, offse
 fn draw_test_menu(render_state: &mut RenderState, game: &Game) {
     draw_text(render_state, "Test Menu", Color::White, 40, 0);
 
-    let menu_data: &TestMenu = &game.menu_data.test_menu;
-
-    for index in 0..menu_data.items.len() {
-        let offset: Offset = menu_offsets::test_window::get_offset(index);
-        match menu_data.items.get(index).unwrap() {
-            MenuItem::Dropdown(dropdown) => {
-                if !dropdown.editing {
-                    draw_dropdown(render_state, dropdown, offset);
-                }
-            },
-            MenuItem::PointBuy(point_buy) => {
-                draw_point_buy(render_state, false, point_buy, offset);
-            }
-            MenuItem::TextField(text_field) => {
-                if !text_field.editing {
-                    draw_text_field(render_state, text_field, offset);
-                }
-            },
-        };
-    }
-    
-    let selected: &MenuItem = menu_data.get_currently_selected_element();
-    let selected_offset: Offset = menu_offsets::test_window::get_offset(menu_data.get_focus_index() as usize);
-    match selected {
-        MenuItem::Dropdown(dropdown) => {
-            draw_dropdown(render_state, dropdown, selected_offset);
-            draw_text(render_state, "*", Color::Yellow, test_window::DROPDOWN.x - 2, test_window::DROPDOWN.y);
-        },
-        MenuItem::PointBuy(point_buy) => {
-            draw_point_buy(render_state, true, point_buy, selected_offset);
-        }
-        MenuItem::TextField(text_field) => {
-            draw_text_field(render_state, text_field, selected_offset);
-            draw_text(render_state, "*", Color::Yellow, test_window::TEXT_FIELD.x - 2, test_window::TEXT_FIELD.y);
-        },
-    }
-    
+    let menu: &TestMenu = &game.menu_data.test_menu;
+    draw_menu_items(render_state, menu);
 }
 
 pub fn create_render_state(terminal: Terminal) -> Result<RenderState, TerminalError> {
