@@ -118,11 +118,21 @@ impl Menu for NewCharacter {
     }
 
     fn next_focus(&mut self) {
-        //TODO(ches) implement this.
+        if self.focus_index < self.get_max_focus_index() {
+            self.focus_index += 1;
+        }
+        else if self.wraps_focus() && self.focus_index >= self.get_max_focus_index() {
+            self.focus_index = 0;
+        }
     }
-
+    
     fn previous_focus(&mut self) {
-        //TODO(ches) implement this.
+        if self.focus_index > 0 {
+            self.focus_index -= 1;
+        }
+        else if self.wraps_focus() && self.focus_index == 0 {
+            self.focus_index = self.get_max_focus_index();
+        }
     }
 
     fn wraps_focus(&self) -> bool {
@@ -321,6 +331,17 @@ impl Menu for TestMenu {
     fn get_menu_type(&self) -> MenuType {
         return MenuType::TestMenu;
     }
+}
+
+
+pub fn is_currently_editing_anything(menu: &dyn Menu) -> bool {
+    let item: &MenuItem = menu.get_currently_selected_element();
+
+    return match item {
+        MenuItem::Dropdown(dropdown) => dropdown.editing,
+        MenuItem::PointBuy(_) => false,
+        MenuItem::TextField(text_field) => text_field.editing,
+    };
 }
 
 pub fn navigate_menu_down(menu: &mut dyn Menu) {

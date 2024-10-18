@@ -408,7 +408,18 @@ impl ActionRoutine for NavigateMenu {
             menu::navigate_menu_down(menu_data);
         }
         else if direction == game.special_entities.up {
-            menu::navigate_menu_out(menu_data);
+            if menu::is_currently_editing_anything(menu_data) {
+                menu::navigate_menu_out(menu_data);
+            }
+            else {
+                let request = ActionRequest {
+                    actor: game.special_entities.player,
+                    action: new_action!(CloseMenu),
+                    noun: Noun::Nothing,
+                    second: Noun::Nothing
+                };
+                game.action_queue.push_back(request);
+            }
         }
         else if direction == game.special_entities.down {
             menu::navigate_menu_in(menu_data);

@@ -1,5 +1,6 @@
 use crate::ui::menu::MenuType;
 
+#[derive(Clone, Copy, Debug)]
 pub struct Offset {
     pub x: u16,
     pub y: u16,

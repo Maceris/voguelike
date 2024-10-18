@@ -12,6 +12,27 @@ pub fn map_input(event: KeyEvent, game: &mut Game) -> Option<ActionRequest> {
 }
 
 fn map_input_menu(menu: MenuType, event: KeyEvent, game: &mut Game) -> Option<ActionRequest> {
+    
+    let direction = match event.code {
+        KeyCode::Up => Some(game.special_entities.north),
+        KeyCode::Right => Some(game.special_entities.east),
+        KeyCode::Down => Some(game.special_entities.south),
+        KeyCode::Left => Some(game.special_entities.west),
+        KeyCode::Esc => Some(game.special_entities.up),
+        KeyCode::Enter => Some(game.special_entities.down),
+        _=> None,
+    };
+
+    if direction.is_some() {
+        let request = ActionRequest {
+            actor: game.special_entities.player,
+            action: new_action!(NavigateMenu),
+            noun: Noun::Entity(direction.unwrap()),
+            second: Noun::Nothing
+        };
+        return Some(request);
+    }
+
     return match menu {
         MenuType::Character => None,
         MenuType::Main => map_input_main_menu(event, game),
@@ -162,26 +183,6 @@ fn map_input_test_menu(event: KeyEvent, game: &mut Game) -> Option<ActionRequest
             },
             _ => {},
         };
-    }
-
-    let direction = match event.code {
-        KeyCode::Up => Some(game.special_entities.north),
-        KeyCode::Right => Some(game.special_entities.east),
-        KeyCode::Down => Some(game.special_entities.south),
-        KeyCode::Left => Some(game.special_entities.west),
-        KeyCode::Esc => Some(game.special_entities.up),
-        KeyCode::Enter => Some(game.special_entities.down),
-        _=> None,
-    };
-
-    if direction.is_some() {
-        let request = ActionRequest {
-            actor: game.special_entities.player,
-            action: new_action!(NavigateMenu),
-            noun: Noun::Entity(direction.unwrap()),
-            second: Noun::Nothing
-        };
-        return Some(request);
     }
 
     return None;

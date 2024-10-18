@@ -263,14 +263,14 @@ fn draw_menu_items(render_state: &mut RenderState, menu: &dyn Menu) {
     match selected {
         MenuItem::Dropdown(dropdown) => {
             draw_dropdown(render_state, dropdown, selected_offset);
-            draw_text(render_state, "*", Color::Yellow, test_window::DROPDOWN.x - 2, test_window::DROPDOWN.y);
+            draw_text(render_state, "*", Color::Yellow, selected_offset.x - 2, selected_offset.y);
         },
         MenuItem::PointBuy(point_buy) => {
             draw_point_buy(render_state, true, point_buy, selected_offset);
         }
         MenuItem::TextField(text_field) => {
             draw_text_field(render_state, text_field, selected_offset);
-            draw_text(render_state, "*", Color::Yellow, test_window::TEXT_FIELD.x - 2, test_window::TEXT_FIELD.y);
+            draw_text(render_state, "*", Color::Yellow, selected_offset.x - 2, selected_offset.y);
         },
     }
 }
