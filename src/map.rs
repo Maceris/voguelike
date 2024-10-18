@@ -1,5 +1,7 @@
 use enum_map::Enum;
 
+use crate::item::Item;
+
 #[derive(Clone, Copy, Debug, Enum)]
 pub enum Tile {
     Air,
@@ -43,7 +45,8 @@ pub struct GameMap {
     pub id: MapID,
     pub width: u16,
     pub height: u16,
-    pub tiles: Vec<Tile>
+    pub items: Vec<Item>,
+    pub tiles: Vec<Tile>,
 }
 
 impl GameMap {
@@ -52,7 +55,8 @@ impl GameMap {
             id,
             width,
             height,
-            tiles: Vec::with_capacity((width * height).into())
+            items: Vec::new(),
+            tiles: Vec::with_capacity((width * height).into()),
         };
 
         for _ in 0..width*height {
@@ -77,7 +81,8 @@ impl GameMap {
             id: 0,
             width: 0,
             height: 0,
-            tiles: Vec::new()
+            items: Vec::new(),
+            tiles: Vec::new(),
         }
     }
 }

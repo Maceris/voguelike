@@ -1,4 +1,14 @@
-pub struct Item;
+use crate::entity::EntityID;
+
+pub struct Item {
+    pub item_type: ItemType,
+    pub location: ItemLocation,
+}
+
+pub enum ItemLocation {
+    Entity(EntityID),
+    World(u16, u16),
+}
 
 pub enum ItemType {
     Abacus,
