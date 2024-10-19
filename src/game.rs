@@ -2,7 +2,7 @@ use std::collections::VecDeque;
 
 use ringbuffer::AllocRingBuffer;
 
-use crate::{action::ActionRequest, component::{Components, EntityType}, entity::EntityID, map::GameMap, material::{self, MaterialMap}, tag::{self, TagMap}, ui::menu::{self, MenuData, MenuType}};
+use crate::{action::ActionRequest, component::{Components, EntityType}, entity::EntityID, item::{self, ItemTagMap}, map::GameMap, material::{self, MaterialMap}, tag::{self, TagMap}, ui::menu::{self, MenuData, MenuType}};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum GameState {
@@ -17,6 +17,7 @@ pub struct DebugInfo {
 }
 
 pub struct DataTables {
+    pub item_tag_map: ItemTagMap,
     pub material_map: MaterialMap,
     pub tag_map: TagMap,
 }
@@ -77,6 +78,7 @@ impl Game {
             components: Components::new(),
             current_map: Box::new(GameMap::empty_map()),
             data_tables: DataTables {
+                item_tag_map: item::generate_item_tag_map(),
                 tag_map: tag::generate_tag_map(),
                 material_map: material::generate_material_map(),
             },
