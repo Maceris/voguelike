@@ -45,7 +45,7 @@ pub struct GameMap {
     pub id: MapID,
     pub width: u16,
     pub height: u16,
-    pub items: Vec<Item>,
+    pub items: Vec<Vec<Item>>,
     pub tiles: Vec<Tile>,
 }
 
@@ -55,24 +55,45 @@ impl GameMap {
             id,
             width,
             height,
-            items: Vec::new(),
+            items: Vec::with_capacity((width * height).into()),
             tiles: Vec::with_capacity((width * height).into()),
         };
 
         for _ in 0..width*height {
             result.tiles.push(Tile::Air);
+            result.items.push(Vec::new());
         }
 
         return result;
     }
 
-    pub fn get(&self, x: u16, y: u16) -> &Tile {
-        let index: usize = (y * self.width + x).into();
+    pub fn coordinates_to_index(&self, x: u16, y: u16) -> usize {
+        return (y * self.width + x).into();
+    }
+
+    pub fn index_to_coordinates(&self, index: usize) -> (u16, u16) {
+        let y: usize = index / self.width as usize;
+        let x: usize = index % self.width as usize;
+        return (x as u16, y as u16);
+    }
+    
+    pub fn get_items(&self, x: u16, y: u16) -> &Vec<Item> {
+        let index: usize = self.coordinates_to_index(x, y);
+        return &self.items[index];
+    }
+
+    pub fn get_items_mut(&mut self, x: u16, y: u16) -> &mut Vec<Item> {
+        let index: usize = self.coordinates_to_index(x, y);
+        return &mut self.items[index];
+    }
+
+    pub fn get_tile(&self, x: u16, y: u16) -> &Tile {
+        let index: usize = self.coordinates_to_index(x, y);
         return &self.tiles[index];
     }
 
-    pub fn set(&mut self, x: u16, y: u16, tile: Tile) {
-        let index: usize = (y * self.width + x).into();
+    pub fn set_tile(&mut self, x: u16, y: u16, tile: Tile) {
+        let index: usize = self.coordinates_to_index(x, y);
         self.tiles[index] = tile;
     }
 

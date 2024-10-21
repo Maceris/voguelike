@@ -9,7 +9,7 @@ pub struct Item {
 
 pub enum ItemLocation {
     Entity(EntityID),
-    World(u16, u16),
+    World,
 }
 
 #[derive(Clone, Copy, Debug, Enum)]
