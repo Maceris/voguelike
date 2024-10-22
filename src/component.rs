@@ -297,6 +297,7 @@ pub struct ObjectComponents {
     next_id: AtomicUsize,
     pub alive: Vec<Alive>,
     pub map_index: Vec<MapIndex>,
+    pub parent: Vec<EntityID>,
     pub position: Vec<Position>,
 }
 
@@ -306,6 +307,7 @@ impl ObjectComponents {
             next_id: AtomicUsize::new(0),
             alive: Vec::with_capacity(DEFAULT_OBJECT_COMPONENT_COUNT),
             map_index: Vec::with_capacity(DEFAULT_OBJECT_COMPONENT_COUNT),
+            parent: Vec::with_capacity(DEFAULT_OBJECT_COMPONENT_COUNT),
             position: Vec::with_capacity(DEFAULT_OBJECT_COMPONENT_COUNT),
         }
     }

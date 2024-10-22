@@ -1,4 +1,4 @@
-use crate::{item::{Item, ItemLocation, ItemType}, map::{self, GameMap}};
+use crate::{item::{Item, ItemType}, map::{self, GameMap}};
 
 pub fn populate_map(map: &mut GameMap) {
     let map_height = map.height;
@@ -18,14 +18,15 @@ pub fn populate_map(map: &mut GameMap) {
     }
 
     //TODO(ches) remove the random items
+    //TODO(ches) store items in components instead?
 
-    map.get_items_mut(2, 1).push(Item{item_type: ItemType::Abacus, location: ItemLocation::World});
-    map.get_items_mut(7, 1).push(Item{item_type: ItemType::LightCrossbow, location: ItemLocation::World});
-    map.get_items_mut(5, 1).push(Item{item_type: ItemType::Crystal, location: ItemLocation::World});
-    map.get_items_mut(8, 2).push(Item{item_type: ItemType::Coin, location: ItemLocation::World});
-    map.get_items_mut(5, 2).push(Item{item_type: ItemType::Waterskin, location: ItemLocation::World});
-    map.get_items_mut(2, 3).push(Item{item_type: ItemType::Lute, location: ItemLocation::World});
-    map.get_items_mut(3, 4).push(Item{item_type: ItemType::Dagger, location: ItemLocation::World});
-    map.get_items_mut(10, 8).push(Item{item_type: ItemType::CrossbowBolt, location: ItemLocation::World});
+    map.get_items_mut(2, 1).push(Item{item_type: ItemType::Abacus});
+    map.get_items_mut(7, 1).push(Item{item_type: ItemType::LightCrossbow});
+    map.get_items_mut(5, 1).push(Item{item_type: ItemType::Crystal});
+    map.get_items_mut(8, 2).push(Item{item_type: ItemType::Coin});
+    map.get_items_mut(5, 2).push(Item{item_type: ItemType::Waterskin});
+    map.get_items_mut(2, 3).push(Item{item_type: ItemType::Lute});
+    map.get_items_mut(3, 4).push(Item{item_type: ItemType::Dagger});
+    map.get_items_mut(10, 8).push(Item{item_type: ItemType::CrossbowBolt});
 
 }

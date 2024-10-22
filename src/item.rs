@@ -1,15 +1,9 @@
 use enum_map::{Enum, EnumMap, enum_map};
 
-use crate::{entity::EntityID, tag::Tag};
+use crate::tag::Tag;
 
 pub struct Item {
     pub item_type: ItemType,
-    pub location: ItemLocation,
-}
-
-pub enum ItemLocation {
-    Entity(EntityID),
-    World,
 }
 
 #[derive(Clone, Copy, Debug, Enum)]
@@ -355,6 +349,7 @@ pub const fn get_cost(item_type: ItemType) -> CurrencyAmount {
 pub type ItemTagMap = EnumMap<ItemType, Vec<Tag>>;
 
 pub fn generate_item_tag_map() -> ItemTagMap {
+    //TODO(ches) add tags
     enum_map! {
         ItemType::Abacus => vec!(),
         ItemType::Amulet => vec!(),
